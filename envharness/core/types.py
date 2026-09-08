@@ -1,9 +1,10 @@
-from dataclasses import dataclass, Any, field
+from dataclasses import dataclass, field
+from typing import Any
 
 @dataclass
 class Action:
-    name: str = field(default_factory=str)
-    kwargs: dict[str, Any] = field(default_factory=dict[str, Any])
+    name: str
+    kwargs: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class Observation:
@@ -11,7 +12,7 @@ class Observation:
     data: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
-class EnvResonse:
+class EnvResponse:
     observation: Observation
     reward: float
     terminated: bool
@@ -21,5 +22,5 @@ class EnvResonse:
 @dataclass
 class EvaluationResult:
     success: bool
-    score: float
+    score: float = 0.0
     metrics: dict[str, Any] = field(default_factory=dict)
