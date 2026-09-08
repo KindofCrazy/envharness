@@ -74,5 +74,5 @@ class Toy24Env(ActionableEnv):
             metrics={
                 "steps": self.state.step_count,
             }
-        }
+        )
 
