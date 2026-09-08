@@ -8,5 +8,5 @@ class Tool(ABC):
 
     @classmethod
     @abstractmethod
-    def invoke(cls, env_state: Any, **kwargs):
+    def invoke(cls, env_state: Any, **kwargs) -> Any:
         ...

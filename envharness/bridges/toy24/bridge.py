@@ -1,6 +1,6 @@
 from envharness.core.actionable_env import ActionableEnv
 from envharness.core.types import Action, Observation, EnvResponse, EvaluationResult
-from envharness.bridges.toy24.game import Toy24State, combine, reset_numbers, stop
+from envharness.bridges.toy24.game import Toy24State
 from envharness.bridges.toy24.tools import Combine, Reset, Stop
 class Toy24Env(ActionableEnv):
 
@@ -21,7 +21,16 @@ class Toy24Env(ActionableEnv):
     def step(self, action: Action):
         self.state.step_count += 1
 
-        if action.name not in [tool.name for tool in self.tool_registry]:
+        tool = next(
+            (
+                tool
+                for tool in self.tool_registry
+                if tool.name == action.name
+            ),
+            None,
+        )
+
+        if tool is None:
             return EnvResponse(
                 observation=self.observe(),
                 reward=0.0,
@@ -31,29 +40,28 @@ class Toy24Env(ActionableEnv):
                     "error": "unknown_action"
                 }
             )
-        
-
-        for tool in self.tool_registry:
-            if tool.name == action.name:
-                try:
-                    info=tool.invoke(self.state, **action.kwargs)
-                except TypeError:
-                    return EnvResponse(
-                        observation=self.observe(),
-                        reward=0.0,
-                        terminated=False,
-                        truncated=False,
-                        info={
-                            "error": "bad args" 
-                        }
-                    )
+        else:
+            try:
+                info=tool.invoke(self.state, **action.kwargs)
+            except TypeError:
+                return EnvResponse(
+                    observation=self.observe(),
+                    reward=0.0,
+                    terminated=False,
+                    truncated=False,
+                    info={
+                        "error": "bad args" 
+                    }
+                )
         
         return EnvResponse(
             observation=self.observe(),
             reward=1.0 if self.state.stopped and self.state.success else 0.0,
             terminated=self.state.stopped,
             truncated=False,
-            info=info
+            info={
+                "result": info
+            }
         )
 
     def observe(self):
