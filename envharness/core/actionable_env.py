@@ -4,7 +4,7 @@ from envharness.core.types import Action, Observation, EnvResponse, EvaluationRe
 
 class ActionableEnv(ABC):
     @abstractmethod
-    def reset(self) -> EnvResponse:
+    def reset(self, *args, **kwargs) -> Observation:
         ...
 
     @abstractmethod
@@ -12,8 +12,9 @@ class ActionableEnv(ABC):
         ...
 
     @abstractmethod
-    def observe() -> Observation:
+    def observe(self) -> Observation:
         ...
 
-    def evaluate() -> EvaluationResult:
+    @abstractmethod
+    def evaluate(self) -> EvaluationResult:
         ...
