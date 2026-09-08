@@ -1,6 +1,8 @@
+from envharness.core.actionable_env import ActionableEnv
+from envharness.core.types import Action, Observation, EnvResponse, EvaluationResult
 from envharness.bridges.toy24.game import Toy24State, combine, reset_numbers, stop
 
-class Toy24Env:
+class Toy24Env(ActionableEnv):
     def __init__(self):
         self.state = Toy24State()
 
@@ -13,60 +15,59 @@ class Toy24Env:
 
         return self.observe()
 
-    def step(self, action: dict):
+    def step(self, action: Action):
         self.state.step_count += 1
 
-        if action["name"] == "combine":
+        if action.name == "combine":
             try:
-                combine(self.state, action["kwargs"]["i"], action["kwargs"]["j"], action["kwargs"]["op"])
+                combine(self.state, action.kwargs["i"], action.kwargs["j"], action.kwargs["op"])
             except (TypeError, KeyError):
-                    return {
-                        "observation": self.observe(),
-                        "reward": 0.0,
-                        "terminated": False,
-                        "truncated": False,
-                        "info": {
+                    return EnvResponse(
+                        observation=self.observe(),
+                        reward=0.0,
+                        terminated=False,
+                        truncated=False,
+                        info={
                             "error": "bad args" 
                         }
-                    }
-        elif action["name"] == "reset":
+                    )
+        elif action.name == "reset":
             reset_numbers(self.state)
-        elif action["name"] == "stop":
+        elif action.name == "stop":
             stop(self.state)
         else:
-            return {
-                "observation": self.observe(),
-                "reward": 0.0,
-                "terminated": False,
-                "truncated": False,
-                "info": {
+            return EnvResponse(
+                observation=self.observe(),
+                reward=0.0,
+                terminated=False,
+                truncated=False,
+                info={
                     "error": "unknown_action"
                 }
-            }
-
-        return {
-            "observation": self.observe(),
-            "reward": 1.0 if self.state.stopped and self.state.success else 0.0,
-            "terminated": self.state.stopped,
-            "truncated": False,
-        }
+            )
+        return EnvResponse(
+            observation=self.observe(),
+            reward=1.0 if self.state.stopped and self.state.success else 0.0,
+            terminated=self.state.stopped,
+            truncated=False,
+        )
 
     def observe(self):
-        return {
-            "text": f"target={self.state.target}, numbers={self.state.current_numbers}, history={self.state.history}, step_count={self.state.step_count}",
-            "data": {
+        return Observation(
+            text=f"target={self.state.target}, numbers={self.state.current_numbers}, history={self.state.history}, step_count={self.state.step_count}",
+            data={
                 "numbers": list(self.state.current_numbers),
                 "target": self.state.target,
                 "history": list(self.state.history),
                 "step_count": self.state.step_count
             }
-        }
+        )
 
     def evaluate(self):
-        return {
-            "success": self.state.stopped and self.state.success,
-            "score": 1.0 if self.state.stopped and self.state.success else 0.0,
-            "metrics": {
+        return EvaluationResult(
+            success=self.state.stopped and self.state.success,
+            score=1.0 if self.state.stopped and self.state.success else 0.0,
+            metrics={
                 "steps": self.state.step_count,
             }
         }
