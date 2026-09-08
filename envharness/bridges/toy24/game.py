@@ -13,8 +13,8 @@ class Toy24State:
 EPS = 1e-6
 
 def combine(state: Toy24State, i: int, j: int, op: str):
-    valid_range = [0, len(state.current_numbers)-1]
-    if (i not in valid_range or j not in valid_range or i == j):
+    n = len(state.current_numbers)
+    if not (0 <= i < n and 0 <= j < n) or i == j:
         return {
             'success': False
         }
@@ -27,8 +27,8 @@ def combine(state: Toy24State, i: int, j: int, op: str):
     elif op == 'mul':
         res = a * b
     elif op == 'div':
-        if b < EPS:
-            return {}
+        if abs(b) < EPS:
+            return {'success': False}
         res = a / b
     else:
         return {
