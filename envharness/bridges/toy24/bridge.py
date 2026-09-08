@@ -1,14 +1,14 @@
-from game import Toy24State, combine
+from envharness.bridges.toy24.game import Toy24State, combine, reset_numbers, stop
 
 class Toy24Env:
     def __init__(self):
         self.state = Toy24State()
 
-    def reset(self):
+    def reset(self, numbers, target=24):
         self.state = Toy24State(
-            target=24,
-            initial_numbers=[3, 3, 8, 8],
-            current_numbers=[3.0, 3.0, 8.0, 8.0],
+            target=target,
+            initial_numbers=numbers,
+            current_numbers=[float(n) for n in numbers]
         )
 
         return self.observe()
@@ -16,34 +16,33 @@ class Toy24Env:
     def step(self, action: dict):
         self.state.step_count += 1
 
-        try:
-            if action["name"] == "combine":
-                    combine(self.state, action["kwargs"]["i"], action["kwargs"]["j"], action["kwargs"]["op"])
-            elif action["name"] == "reset":
-                self.reset()
-            elif action["name"] == "stop":
-                self.stop()
-            else:
-                return {
-                    "observation": self.observe(),
-                    "reward": 0.0,
-                    "terminated": False,
-                    "truncated": False,
-                    "info": {
-                        "error": "unknown_action"
+        if action["name"] == "combine":
+            try:
+                combine(self.state, action["kwargs"]["i"], action["kwargs"]["j"], action["kwargs"]["op"])
+            except (TypeError, KeyError):
+                    return {
+                        "observation": self.observe(),
+                        "reward": 0.0,
+                        "terminated": False,
+                        "truncated": False,
+                        "info": {
+                            "error": "bad args" 
+                        }
                     }
-                }
-        except TypeError:
+        elif action["name"] == "reset":
+            reset_numbers(self.state)
+        elif action["name"] == "stop":
+            stop(self.state)
+        else:
             return {
                 "observation": self.observe(),
                 "reward": 0.0,
                 "terminated": False,
                 "truncated": False,
                 "info": {
-                    "error": "bad args" 
+                    "error": "unknown_action"
                 }
             }
-        
 
         return {
             "observation": self.observe(),
@@ -54,17 +53,20 @@ class Toy24Env:
 
     def observe(self):
         return {
-            "numbers": list(self.state.current_numbers),
-            "target": self.state.target,
-            "history": list(self.state.history),
-            "step_count": self.state.step_count
+            "text": f"target={self.state.target}, numbers={self.state.current_numbers}, history={self.state.history}, step_count={self.state.step_count}",
+            "data": {
+                "numbers": list(self.state.current_numbers),
+                "target": self.state.target,
+                "history": list(self.state.history),
+                "step_count": self.state.step_count
+            }
         }
 
     def evaluate(self):
         return {
             "success": self.state.stopped and self.state.success,
             "score": 1.0 if self.state.stopped and self.state.success else 0.0,
-            "metrices": {
+            "metrics": {
                 "steps": self.state.step_count,
             }
         }
