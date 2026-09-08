@@ -7,7 +7,7 @@ class Toy24Env:
     def reset(self, numbers, target=24):
         self.state = Toy24State(
             target=target,
-            initial_numbers=numbers,
+            initial_numbers=list(numbers),
             current_numbers=[float(n) for n in numbers]
         )
 
