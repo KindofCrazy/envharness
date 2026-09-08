@@ -13,6 +13,9 @@ class Toy24State:
 EPS = 1e-6
 
 def combine(state: Toy24State, i: int, j: int, op: str):
+    if state.stopped:
+        return {'success': False}
+
     n = len(state.current_numbers)
     if not (0 <= i < n and 0 <= j < n) or i == j:
         return {
@@ -46,3 +49,11 @@ def combine(state: Toy24State, i: int, j: int, op: str):
         'success': True,
         'res': res
     }
+
+def reset_numbers(state: Toy24State):
+    state.current_numbers = [float(n) for n in state.initial_numbers]
+    state.history.append('reset')
+
+def stop(state: Toy24State):
+    state.stopped = True
+    state.success = any(abs(x - state.target) < EPS for x in state.current_numbers)
