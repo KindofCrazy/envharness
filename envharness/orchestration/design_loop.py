@@ -18,7 +18,7 @@ def run_design_step(
     candidate = proposal.candidate
     new_env = build_env_stack(base_env, candidate)
 
-    return trace, candidate, new_env
+    return trace, proposal, new_env
 
 def run_design_loop(
     base_env: ActionableEnv,
