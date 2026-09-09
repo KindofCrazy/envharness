@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, ValidationBatch, ValidationComparison
+from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, ValidationBatch, ValidationComparison, ValidationAttempt
 
 class Designer(ABC):
 
@@ -23,7 +23,7 @@ class Designer(ABC):
         )
 
     @abstractmethod
-    def revise(self, proposal: DesignProposal, validation_comparison: ValidationComparison) -> DesignProposal:
+    def revise(self, attempt: ValidationAttempt) -> DesignProposal:
         ...
 
 
@@ -47,7 +47,7 @@ class ScriptedDesigner(Designer):
         self.index += 1
         return candidate
 
-    def revise(self, proposal: DesignProposal, validation_comparison: ValidationComparison) -> DesignProposal:
+    def revise(self, attempt: ValidationAttempt) -> DesignProposal:
         diagnosis = Diagnosis(summary="Scripted Designer")
         candidate = self.write(diagnosis)
 

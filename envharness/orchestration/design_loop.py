@@ -1,7 +1,7 @@
 from envharness.core.actionable_env import ActionableEnv
 from envharness.agents.policy import Policy
 from envharness.agents.designer import Designer
-from envharness.core.types import Trace, Candidate, DesignProposal, ValidationBatch, ValidationComparison
+from envharness.core.types import Trace, Candidate, DesignProposal, ValidationBatch, ValidationComparison, ValidationAttempt, DesignIterationResult
 from envharness.orchestration.objectives import Objective
 from envharness.orchestration.builder import build_env_stack
 from envharness.orchestration.runner import run_episode
@@ -31,8 +31,7 @@ def run_design_loop(
     objective: Objective,
     validation_rollouts: int = 5,
     **reset_kwargs,
-) -> tuple[list[tuple[ValidationBatch, Trace, list[tuple[DesignProposal, ValidationBatch]], bool]], ActionableEnv]:
-    designer.reset()
+) -> tuple[list[DesignIterationResult], ActionableEnv]:
 
     current_env = base_env
     history = []
@@ -45,16 +44,19 @@ def run_design_loop(
 
         baseline_batch = evaluate_env_k(current_env, policy, validation_rollouts, *reset_args, **reset_kwargs)
         attempts = validate_with_revisions(base_env, proposal, policy, designer, *reset_args, max_revisions=revision_budget, num_rollouts=validation_rollouts, baseline_batch=baseline_batch, objective=objective, **reset_kwargs)
-        final_proposal, final_validation_batch = attempts[-1]
+        final_attempt = attempts[-1]
 
-        comparison = ValidationComparison(
-            baseline=baseline_batch,
-            candidate=final_validation_batch
+        accepted = final_attempt.objective_result.satified
+
+        current_env, accepted = select_next_env(base_env, current_env, final_attempt.proposal.candidate, accepted)
+        history.append(
+            DesignIterationResult(
+                baseline=baseline_batch,
+                proposal_trace=proposal_trace,
+                attempts=attempts,
+                accepted=accepted
+            )
         )
-        accepted = objective.satisfied(comparison)
-
-        current_env, accepted = select_next_env(base_env, current_env, final_proposal.candidate, accepted)
-        history.append((baseline_batch, proposal_trace, attempts, accepted))
 
     return history, current_env
 
@@ -101,7 +103,7 @@ def validate_with_revisions(
     baseline_batch: ValidationBatch,
     objective: Objective,
     **reset_kwargs,
-) -> list[tuple[DesignProposal, ValidationBatch]]:
+) -> list[ValidationAttempt]:
     attempts = []
 
     validation_batch = validate_candidate_k(base_env, proposal.candidate, policy, num_rollouts, *reset_args, **reset_kwargs)
@@ -111,6 +113,14 @@ def validate_with_revisions(
         baseline=baseline_batch,
         candidate=validation_batch
     )
+    objective_result = objective.evaluate(comparison)
+    attempt = ValidationAttempt(
+        proposal=proposal,
+        validation=validation_batch,
+        comparison=comparison,
+        objective_result=objective_result
+    )
+    attempts.append(attempt)
     if objective.satisfied(comparison):
         return attempts
 
@@ -118,13 +128,20 @@ def validate_with_revisions(
         max_revisions -= 1
         proposal = designer.revise(proposal, comparison)
         validation_batch = validate_candidate_k(base_env, proposal.candidate, policy, num_rollouts, *reset_args, **reset_kwargs)
-        attempts.append((proposal, validation_batch))
 
         comparison = ValidationComparison(
             baseline=baseline_batch,
             candidate=validation_batch
         )
-        if objective.satisfied(comparison):
+        objective_result = objective.evaluate(comparison)
+        attempt = ValidationAttempt(
+            proposal=proposal,
+            validation=validation_batch,
+            comparison=comparison,
+            objective_result=objective_result
+        )
+        attempts.append(attempt)
+        if objective_result.satified:
             return attempts
 
     return attempts

@@ -77,3 +77,24 @@ class ValidationComparison:
     @property
     def delta_success_rate(self) -> float:
         return self.candidate.success_rate - self.baseline.success_rate
+
+@dataclass
+class ObjectiveResult:
+    satified: bool
+    score: float = 0.0
+    diagnostic: str = ""
+    suggestion: str = ""
+
+@dataclass
+class ValidationAttempt:
+    proposal: DesignProposal
+    validation: ValidationBatch
+    comparison: ValidationComparison
+    objective_result: ObjectiveResult
+
+@dataclass
+class DesignIterationResult:
+    baseline: ValidationBatch
+    proposal_trace: Trace
+    attempts: list[ValidationAttempt] = field(default_factory=list)
+    accepted: bool = False
