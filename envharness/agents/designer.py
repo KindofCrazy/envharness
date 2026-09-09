@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from envharness.core.types import Trace, Candidate, Diagnosis
+from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal
 
 class Designer(ABC):
 
@@ -14,9 +14,14 @@ class Designer(ABC):
     def write(self, diagnosis: Diagnosis) -> Candidate:
         ...
 
-    def propose(self, trace: Trace) -> Candidate:
+    def propose(self, trace: Trace) -> DesignProposal:
         diagnosis = self.diagnose(trace)
-        return self.write(diagnosis)
+        candidate = self.write(diagnosis)
+        return DesignProposal(
+            diagnosis=diagnosis,
+            candidate=candidate,
+        )
+
 
 class ScriptedDesigner(Designer):
 

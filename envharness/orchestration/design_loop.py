@@ -1,7 +1,7 @@
 from envharness.core.actionable_env import ActionableEnv
 from envharness.agents.policy import Policy
 from envharness.agents.designer import Designer
-from envharness.core.types import Trace, Candidate
+from envharness.core.types import Trace, Candidate, DesignProposal
 from envharness.orchestration.builder import build_env_stack
 from envharness.orchestration.runner import run_episode
 
@@ -26,7 +26,7 @@ def run_design_loop(
     num_iterations: int,
     *reset_args,
     **reset_kwargs,
-) -> tuple[list[tuple[Trace, Candidate, Trace, bool]], ActionableEnv]:
+) -> tuple[list[tuple[Trace, DesignProposal, Trace, bool]], ActionableEnv]:
     designer.reset()
 
     current_env = base_env
@@ -35,12 +35,13 @@ def run_design_loop(
     while num_iterations > 0:
         num_iterations -= 1
         proposal_trace = run_episode(current_env, policy, *reset_args, **reset_kwargs)
-        candidate = designer.propose(proposal_trace)
+        proposal = designer.propose(proposal_trace)
+        candidate = proposal.candidate
     
         validation_trace = validate_candidate(base_env, candidate, policy, *reset_args, **reset_kwargs)
         current_env, accepted = select_next_env(base_env, current_env, candidate, validation_trace)
 
-        history.append((proposal_trace, candidate, validation_trace, accepted))
+        history.append((proposal_trace, proposal, validation_trace, accepted))
 
     return history, current_env
 
