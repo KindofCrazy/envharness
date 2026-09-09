@@ -84,7 +84,7 @@ def validate_with_one_revision(
     if validation_trace.success:
         return attempts
 
-    proposal = designer.revise(proposal)
+    proposal = designer.revise(proposal, validation_trace)
     validation_trace = validate_candidate(base_env, proposal.candidate, policy, *reset_args, **reset_kwargs)
     attempts.append((proposal, validation_trace))
 
