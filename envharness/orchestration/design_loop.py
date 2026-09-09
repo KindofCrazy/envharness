@@ -26,7 +26,7 @@ def run_design_loop(
     num_iterations: int,
     *reset_args,
     **reset_kwargs,
-) -> tuple[list[Trace, Candidate], ActionableEnv]:
+) -> tuple[list[tuple[Trace, Candidate]], ActionableEnv]:
     designer.reset()
 
     current_env = base_env
@@ -43,6 +43,6 @@ def run_design_loop(
             **reset_kwargs,
         )
         current_env = new_env
-        history.append([trace, candidate])
+        history.append((trace, candidate))
 
     return history, current_env
