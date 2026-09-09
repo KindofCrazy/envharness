@@ -16,7 +16,7 @@ class Rules(EnvHarness):
 
     def step(self, action: Action) -> EnvResponse:
         filtered = self.filter_action(action)
-        if filtered isinstance Blocked:
+        if isinstance(filtered, Blocked):
             return EnvResponse(
                 observation=self.observe(),
                 reward=0.0,
