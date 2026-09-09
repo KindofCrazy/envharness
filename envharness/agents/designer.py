@@ -13,7 +13,7 @@ class Designer(ABC):
 class ScriptedDesigner(Designer):
 
     def __init__(self, candidates: list[Candidate]):
-        self.candidate = list(candidates)
+        self.candidates = list(candidates)
         self.index = 0
 
     def reset(self):
@@ -23,6 +23,6 @@ class ScriptedDesigner(Designer):
         if self.index >= len(self.candidate):
             raise RuntimeError("designer script exhausted")
 
-        candidate = self.candidate[self.index]
+        candidate = self.candidates[self.index]
         self.index += 1
         return candidate
