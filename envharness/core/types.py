@@ -49,3 +49,8 @@ class Candidate:
 @dataclass
 class Diagnosis:
     summary: str
+
+@dataclass
+class DesignProposal:
+    diagnosis: Diagnosis
+    candidate: Candidate
