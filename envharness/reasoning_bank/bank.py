@@ -62,16 +62,18 @@ class Bank:
 
         return cls(items)
 
-    def retrieve(self, query_embedding: list[float], k: int = 5, consine_threshold: float=0.0) -> list[MemoryItem]:
+    def retrieve(self, query_embedding: list[float], k: int = 5, cosine_threshold: float=0.0) -> list[MemoryItem]:
         if k <= 0:
             raise ValueError("k must be positive")
         if not self.items:
             return []
 
-        scored = [(cosine(query_embedding, item), item) for item in self.items]
-        scored = [(score, item) for score, item in scored if score > consine_threshold]
+        scored = [(cosine(query_embedding, item.embedding), item) for item in self.items]
+
+        if cosine_threshold > 0:
+            scored = [(score, item) for score, item in scored if score >= cosine_threshold]
         if not scored: return []
 
-        scored.sort(key=lambda pair: pair[0], reversed=True)
+        scored.sort(key=lambda pair: pair[0], reverse=True)
         return [item for _, item in scored[:k]]
-    
+
