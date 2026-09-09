@@ -22,6 +22,10 @@ class Designer(ABC):
             candidate=candidate,
         )
 
+    @abstractmethod
+    def revise(self, proposal: DesignProposal, validation_trace: Trace) -> DesignProposal:
+        ...
+
 
 class ScriptedDesigner(Designer):
 
@@ -42,4 +46,13 @@ class ScriptedDesigner(Designer):
         candidate = self.candidates[self.index]
         self.index += 1
         return candidate
+
+    def revise(self, proposal: DesignProposal, validation_trace: Trace) -> DesignProposal:
+        diagnosis = self.diagnose(validation_trace)
+        candidate = self.write(diagnosis)
+
+        return DesignProposal(
+            diagnosis=diagnosis,
+            candidate=candidate
+        )
 
