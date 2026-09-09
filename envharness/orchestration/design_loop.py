@@ -46,7 +46,7 @@ def run_design_loop(
         attempts = validate_with_revisions(base_env, proposal, policy, designer, *reset_args, max_revisions=revision_budget, num_rollouts=validation_rollouts, baseline_batch=baseline_batch, objective=objective, **reset_kwargs)
         final_attempt = attempts[-1]
 
-        accepted = final_attempt.objective_result.satified
+        accepted = final_attempt.objective_result.satisfied
 
         current_env, accepted = select_next_env(base_env, current_env, final_attempt.proposal.candidate, accepted)
         history.append(
@@ -119,7 +119,7 @@ def validate_with_revisions(
         objective_result=objective_result
     )
     attempts.append(attempt)
-    if objective_result.satified:
+    if objective_result.satisfied:
         return attempts
 
     while max_revisions > 0:
@@ -139,7 +139,7 @@ def validate_with_revisions(
             objective_result=objective_result
         )
         attempts.append(attempt)
-        if objective_result.satified:
+        if objective_result.satisfied:
             return attempts
 
     return attempts

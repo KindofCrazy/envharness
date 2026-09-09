@@ -80,7 +80,7 @@ class ValidationComparison:
 
 @dataclass
 class ObjectiveResult:
-    satified: bool
+    satisfied: bool
     score: float = 0.0
     diagnostic: str = ""
     suggestion: str = ""
