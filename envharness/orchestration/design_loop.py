@@ -111,7 +111,7 @@ def validate_with_revisions(
         baseline=baseline_batch,
         candidate=validation_batch
     )
-    if objective.satisfied(comparsion):
+    if objective.satisfied(comparison):
         return attempts
 
     while max_revisions > 0:
@@ -120,11 +120,11 @@ def validate_with_revisions(
         validation_batch = validate_candidate_k(base_env, proposal.candidate, policy, num_rollouts, *reset_args, **reset_kwargs)
         attempts.append((proposal, validation_batch))
 
-        comparsion = ValidationComparison(
+        comparison = ValidationComparison(
             baseline=baseline_batch,
             candidate=validation_batch
         )
-        if objective.satisfied(comparsion):
+        if objective.satisfied(comparison):
             return attempts
 
     return attempts
