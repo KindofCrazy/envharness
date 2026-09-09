@@ -7,6 +7,10 @@ class Action:
     kwargs: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
+class Blocked:
+    reason: str = ""
+
+@dataclass
 class Observation:
     text: str
     data: dict[str, Any] = field(default_factory=dict)

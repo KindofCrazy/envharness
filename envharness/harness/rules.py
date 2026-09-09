@@ -1,11 +1,11 @@
 from envharness.core.envharness import EnvHarness
-from envharness.core.types import Action, Observation, EnvResponse
+from envharness.core.types import Action, Blocked, Observation, EnvResponse
 
 class Rules(EnvHarness):
     def __init__(self, inner):
         super().__init__(inner)
 
-    def filter_action(self, action: Action) -> Action:
+    def filter_action(self, action: Action) -> Action | Blocked:
         return action
 
     def modify_transition(self, action: Action, response: EnvResponse) -> EnvResponse:
@@ -15,10 +15,21 @@ class Rules(EnvHarness):
         return observation
 
     def step(self, action: Action) -> EnvResponse:
-        action = self.filter_action(action)
-        response = super().step(action)
-        response = self.modify_transition(action, response)
-        response.observation = self.filter_observation(response.observation)
+        filtered = self.filter_action(action)
+        if filtered isinstance Blocked:
+            return EnvResponse(
+                observation=self.observe(),
+                reward=0.0,
+                terminated=False,
+                truncated=False,
+                info={
+                    "reason": filtered.reason
+                }
+            )
+        else:
+            response = super().step(filtered)
+            response = self.modify_transition(filtered, response)
+            response.observation = self.filter_observation(response.observation)
 
         return response
 
