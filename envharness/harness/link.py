@@ -5,6 +5,7 @@ from envharness.core.types import EnvResponse, EvaluationResult
 class Link(EnvHarness):
     def __init__(self, env_a: ActionableEnv, env_b: ActionableEnv):
         super().__init__(env_a)
+        self.env_a = env_a
         self.env_b = env_b
         self.stage = "A"
         self.a_success = False
@@ -13,6 +14,8 @@ class Link(EnvHarness):
     def reset(self, *args, **kwargs):
         self.stage = "A"
         self.a_success = False
+        self.b_success = False
+        self.inner = self.env_a
         return super().reset(*args, **kwargs)
 
     def step(self, action):
@@ -52,6 +55,8 @@ class Link(EnvHarness):
                         "combined_suceess": combined
                     }
                 )
+            else:
+                return response
 
     def evaluate(self):
         return EvaluationResult(
