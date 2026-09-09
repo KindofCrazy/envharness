@@ -54,3 +54,7 @@ class Diagnosis:
 class DesignProposal:
     diagnosis: Diagnosis
     candidate: Candidate
+
+@dataclass
+class ValidationBatch:
+    traces: list[Trace] = field(default_factory=list)
