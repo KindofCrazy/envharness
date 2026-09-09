@@ -43,7 +43,7 @@ def run_design_loop(
         proposal_trace = run_episode(current_env, policy, *reset_args, **reset_kwargs)
         proposal = designer.propose(proposal_trace)
 
-        baseline_batch = evaluate_env_k(current_env, policy, num_rollouts=validation_rollouts)
+        baseline_batch = evaluate_env_k(current_env, policy, validation_rollouts, *reset_args, **reset_kwargs)
         attempts = validate_with_revisions(base_env, proposal, policy, designer, *reset_args, max_revisions=revision_budget, num_rollouts=validation_rollouts, baseline_batch=baseline_batch, objective=objective, **reset_kwargs)
         final_proposal, final_validation_batch = attempts[-1]
 
@@ -80,15 +80,6 @@ def validate_candidate_k(
     candidate_env = build_env_stack(base_env, candidate)
     return evaluate_env_k(candidate_env, policy, num_rollouts, *reset_args, **reset_kwargs)
 
-
-def validation_passes(
-    batch: ValidationBatch,
-    min_success_rate: float
-) -> bool:
-    if not 0 <= min_success_rate <= 1.0:
-        raise ValueError("min_success_rate must be between 0 and 1")
-    return batch.success_rate >= min_success_rate
-
 def select_next_env(
     base_env: ActionableEnv,
     current_env: ActionableEnv,
@@ -116,7 +107,7 @@ def validate_with_revisions(
     validation_batch = validate_candidate_k(base_env, proposal.candidate, policy, num_rollouts, *reset_args, **reset_kwargs)
     attempts.append((proposal, validation_batch))
 
-    comparsion = ValidationComparison(
+    comparison = ValidationComparison(
         baseline=baseline_batch,
         candidate=validation_batch
     )
@@ -125,7 +116,7 @@ def validate_with_revisions(
 
     while max_revisions > 0:
         max_revisions -= 1
-        proposal = designer.revise(proposal, validation_batch)
+        proposal = designer.revise(proposal, comparison)
         validation_batch = validate_candidate_k(base_env, proposal.candidate, policy, num_rollouts, *reset_args, **reset_kwargs)
         attempts.append((proposal, validation_batch))
 

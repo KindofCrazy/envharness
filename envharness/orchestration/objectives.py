@@ -7,7 +7,7 @@ class Objective(ABC):
     def satisfied(self, comparison: ValidationComparison) -> bool:
         ...
 
-class MinSuccessRateObject(Objective):
+class MinSuccessRateObjective(Objective):
 
     def __init__(self, min_success_rate: float):
         if not 0.0 <= min_success_rate <= 1.0:
@@ -19,7 +19,7 @@ class MinSuccessRateObject(Objective):
 
 class ImproveOverBaselineObjective(Objective):
 
-    def __init__(self, min_delta: float):
+    def __init__(self, min_delta: float = 0.0):
         self.min_delta = min_delta
 
     def satisfied(self, comparison):
