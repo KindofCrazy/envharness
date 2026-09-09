@@ -89,3 +89,31 @@ def validate_with_one_revision(
     attempts.append((proposal, validation_trace))
 
     return attempts
+
+def validate_with_revisions(
+    base_env: ActionableEnv,
+    proposal: DesignProposal,
+    policy: Policy,
+    designer: Designer,
+    max_revisions: int,
+    *reset_args,
+    **reset_kwargs,
+) -> list[tuple[DesignProposal, Trace]]:
+    attempts = []
+
+    validation_trace = validate_candidate(base_env, proposal.candidate, policy, *reset_args, **reset_kwargs)
+    attempts.append((proposal, validation_trace))
+
+    if validation_trace.success:
+        return attempts
+
+    while max_revisions > 0:
+        max_revisions -= 1
+        proposal = designer.revise(proposal, validation_trace)
+        validation_trace = validate_candidate(base_env, proposal.candidate, policy, *reset_args, **reset_kwargs)
+        attempts.append((proposal, validation_trace))
+
+        if validation_trace.success:
+            break
+
+    return attempts
