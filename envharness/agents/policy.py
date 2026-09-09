@@ -9,3 +9,21 @@ class Policy(ABC):
     @abstractmethod
     def act(self, observation: Observation) -> Action:
         ...
+
+class ScriptedPolicy(Policy):
+    def __init__(self, actions: list[Action]):
+        super().__init__()
+        self.actions = actions
+        self.index = 0
+
+    def reset(self):
+        self.index = 0
+
+    def act(self, observations):
+        if self.index >= len(self.actions):
+            raise RuntimeError("script exhausted")
+        action = self.actions[self.index]
+        self.index += 1
+        return action
+
+    
