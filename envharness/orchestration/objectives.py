@@ -63,7 +63,7 @@ class TargetSuccessBandObjective(Objective):
 
     def evaluate(self, comparison):
         candidate_success_rate = comparison.candidate.success_rate
-        satisfied = self.low <= candidate_success_rate <= self.high
+        satified = self.low <= candidate_success_rate <= self.high
         if candidate_success_rate < self.low:
             diagnostic = "too hard"
             suggestion = "Decrease difficulty" 
@@ -75,7 +75,7 @@ class TargetSuccessBandObjective(Objective):
         score = max(0, 1 - abs(candidate_success_rate - c) / h)
 
         return ObjectiveResult(
-            satisfied=satisfied,
+            satified=satified,
             score=score,
             diagnostic=(
                 f"candidate successs rate={candidate_success_rate:.2f}, ",

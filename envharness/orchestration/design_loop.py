@@ -32,7 +32,7 @@ def run_design_loop(
     validation_rollouts: int = 5,
     **reset_kwargs,
 ) -> tuple[list[DesignIterationResult], ActionableEnv]:
-
+    designer.reset()
     current_env = base_env
     history = []
 
@@ -107,8 +107,6 @@ def validate_with_revisions(
     attempts = []
 
     validation_batch = validate_candidate_k(base_env, proposal.candidate, policy, num_rollouts, *reset_args, **reset_kwargs)
-    attempts.append((proposal, validation_batch))
-
     comparison = ValidationComparison(
         baseline=baseline_batch,
         candidate=validation_batch
@@ -121,12 +119,12 @@ def validate_with_revisions(
         objective_result=objective_result
     )
     attempts.append(attempt)
-    if objective.satisfied(comparison):
+    if objective_result.satified:
         return attempts
 
     while max_revisions > 0:
         max_revisions -= 1
-        proposal = designer.revise(proposal, comparison)
+        proposal = designer.revise(attempt)
         validation_batch = validate_candidate_k(base_env, proposal.candidate, policy, num_rollouts, *reset_args, **reset_kwargs)
 
         comparison = ValidationComparison(
