@@ -13,7 +13,7 @@ class Designer(ABC):
 class ScriptedDesigner(Designer):
 
     def __init__(self, candidates: list[Candidate]):
-        self.candidate = candidates
+        self.candidate = list(candidates)
         self.index = 0
 
     def reset(self):
