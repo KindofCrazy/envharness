@@ -41,7 +41,7 @@ def run_design_loop(
         proposal_trace = run_episode(current_env, policy, *reset_args, **reset_kwargs)
         proposal = designer.propose(proposal_trace)
 
-        attempts = validate_with_revisions(base_env, proposal, policy, designer, *reset_args, revision_budget=revision_budget, validation_rollouts=validation_rollouts, min_success_rate=min_success_rate, **reset_kwargs)
+        attempts = validate_with_revisions(base_env, proposal, policy, designer, *reset_args, revision_budget=revision_budget, num_rollouts=validation_rollouts, min_success_rate=min_success_rate, **reset_kwargs)
         final_proposal, final_validation_batch = attempts[-1]
         accepted = validation_passes(final_validation_batch, min_success_rate)
         current_env, accepted = select_next_env(base_env, current_env, final_proposal.candidate, accepted)
@@ -86,8 +86,8 @@ def validation_passes(
     batch: ValidationBatch,
     min_success_rate: float
 ) -> bool:
-    if min_success_rate not in (0, 1):
-        raise ValueError("min_success_rate must in (0,1)")
+    if not 0 <= min_success_rate <= 1.0:
+        raise ValueError("min_success_rate must be between 0 and 1")
     return batch.success_rate >= min_success_rate
 
 def select_next_env(
