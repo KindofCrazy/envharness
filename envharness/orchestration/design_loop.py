@@ -37,11 +37,10 @@ def run_design_loop(
         num_iterations -= 1
         proposal_trace = run_episode(current_env, policy, *reset_args, **reset_kwargs)
         proposal = designer.propose(proposal_trace)
-        candidate = proposal.candidate
 
         attempts = validate_with_one_revision(base_env, proposal, policy, designer, *reset_args, **reset_kwargs)
         final_proposal, final_validation_trace = attempts[-1]
-        current_env, accepted = select_next_env(base_env, current_env, candidate, final_validation_trace)
+        current_env, accepted = select_next_env(base_env, current_env, final_proposal.candidate, final_validation_trace)
 
         history.append((proposal_trace, attempts, accepted))
 
