@@ -25,8 +25,8 @@ def run_design_loop(
     policy: Policy,
     designer: Designer,
     num_iterations: int,
-    revision_budget: int = 1,
     *reset_args,
+    revision_budget: int = 1,
     **reset_kwargs,
 ) -> tuple[list[tuple[Trace, list[tuple[DesignProposal, Trace]], bool]], ActionableEnv]:
     designer.reset()
