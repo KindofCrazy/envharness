@@ -24,6 +24,7 @@ class Link(EnvHarness):
                 a_evaluation = super().evaluate()
                 self.a_success = a_evaluation.success
                 self.stage = "B"
+                self.env_b.reset()
                 return EnvResponse(
                     observation=self.observe(),
                     reward=0.0,
