@@ -15,17 +15,14 @@ class Link(EnvHarness):
         self.stage = "A"
         self.a_success = False
         self.b_success = False
-        self.inner = self.env_a
         return super().reset(*args, **kwargs)
 
     def step(self, action):
-        response = super().step(action)
         if self.stage == "A":
+            response = self.inner.step(action)
             if response.truncated or response.terminated:
                 a_evaluation = super().evaluate()
                 self.a_success = a_evaluation.success
-                self.inner = self.env_b
-                super().reset()
                 self.stage = "B"
                 return EnvResponse(
                     observation=self.observe(),
@@ -40,8 +37,9 @@ class Link(EnvHarness):
             else:
                 return response
         else:
+            response = self.env_b.step(action)
             if response.truncated or response.terminated:
-                b_evaluation = super().evaluate()
+                b_evaluation = self.env_b.evaluate()
                 self.b_success = b_evaluation.success
                 combined = self.a_success and self.b_success
                 return EnvResponse(
@@ -52,7 +50,7 @@ class Link(EnvHarness):
                     info={
                         "a_success": self.a_success,
                         "b_success": self.b_success,
-                        "combined_suceess": combined
+                        "combined_success": combined
                     }
                 )
             else:
@@ -63,3 +61,8 @@ class Link(EnvHarness):
             success = self.a_success and self.b_success,
             score = 1.0 if self.a_success and self.b_success else 0.0
         )
+
+    def observe(self):
+        if self.stage == "A":
+            return self.inner.observe()
+        return self.env_b.observe()
