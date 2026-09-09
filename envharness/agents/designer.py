@@ -3,7 +3,7 @@ from envharness.core.types import Trace, Candidate
 
 class Designer(ABC):
 
-    def reset():
+    def reset(self):
         pass
 
     @abstractmethod
