@@ -16,7 +16,7 @@ def load_rules_subclass(code: str) -> type:
         "Rules": Rules
     }
     try:
-        compiled = complie(code, "<rules>", "exec")
+        compiled = compile(code, "<rules>", "exec")
     except SyntaxError as e:
         raise RulesCodeError(
             f"SyntaxError: {e}"
@@ -29,7 +29,7 @@ def load_rules_subclass(code: str) -> type:
             f"Execution failed: {e}"
         ) from e
 
-    cls = namespace["_Rules"]
+    cls = namespace.get("_Rules")
     if cls is None:
         raise RulesCodeError(
             "Code must define _Rules"
