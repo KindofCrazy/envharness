@@ -28,3 +28,15 @@ class EvaluationResult:
     success: bool
     score: float = 0.0
     metrics: dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class Step:
+    observation: Observation
+    action: Action
+    response: EnvResponse
+
+@dataclass
+class Trace:
+    initial_observation: Observation
+    steps: list[Step] = field(default_factory=list)
+    success: bool = False
