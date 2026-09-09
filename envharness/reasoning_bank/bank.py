@@ -6,7 +6,7 @@ class MemoryItem:
     description: str
     content: str
     embedding: list[float]
-    source: dict = field(default_factory=list)
+    source: dict = field(default_factory=dict)
 
     @property
     def text(self) -> str:
@@ -31,5 +31,4 @@ class Bank:
         return len(self.items)
 
     def __repr__(self):
-        return f"Banck(n_items={len(self.items)})"
-    
+        return f"Bank(n_items={len(self.items)})"
