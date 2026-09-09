@@ -4,7 +4,7 @@ from envharness.core.types import Action
 
 class MaxStepHarness(EnvHarness):
     def __init__(self, inner: ActionableEnv, max_steps: int):
-        self.inner = inner
+        super().__init__(inner)
         self.max_steps = max_steps
         self.current_steps = 0
 
@@ -19,9 +19,3 @@ class MaxStepHarness(EnvHarness):
         if not result.terminated and self.current_steps >= self.max_steps:
             result.truncated = True
         return result
-
-    def observe(self):
-        return super().observe()
-
-    def evaluate(self):
-        return super().evaluate()
