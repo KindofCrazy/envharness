@@ -25,6 +25,7 @@ def run_design_loop(
     policy: Policy,
     designer: Designer,
     num_iterations: int,
+    revision_budget: int = 1,
     *reset_args,
     **reset_kwargs,
 ) -> tuple[list[tuple[Trace, list[tuple[DesignProposal, Trace]], bool]], ActionableEnv]:
@@ -38,7 +39,7 @@ def run_design_loop(
         proposal_trace = run_episode(current_env, policy, *reset_args, **reset_kwargs)
         proposal = designer.propose(proposal_trace)
 
-        attempts = validate_with_one_revision(base_env, proposal, policy, designer, *reset_args, **reset_kwargs)
+        attempts = validate_with_revisions(base_env, proposal, policy, designer, revision_budget, *reset_args, **reset_kwargs)
         final_proposal, final_validation_trace = attempts[-1]
         current_env, accepted = select_next_env(base_env, current_env, final_proposal.candidate, final_validation_trace)
 
