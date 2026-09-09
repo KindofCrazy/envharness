@@ -31,4 +31,5 @@ def run_episode(
 
     evaluation = env.evaluate()
     trace.success = evaluation.success
-    
+    return trace
+
