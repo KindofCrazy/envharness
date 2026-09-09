@@ -12,9 +12,10 @@ def run_design_step(
     designer: Designer,
     *reset_args,
     **reset_kwargs,
-) -> tuple[Trace, Candidate, ActionableEnv]:
+) -> tuple[Trace, DesignProposal, ActionableEnv]:
     trace = run_episode(current_env, policy, *reset_args, **reset_kwargs)
-    candidate = designer.propose(trace)
+    proposal = designer.propose(trace)
+    candidate = proposal.candidate
     new_env = build_env_stack(base_env, candidate)
 
     return trace, candidate, new_env
