@@ -70,6 +70,9 @@ class TargetSuccessBandObjective(Objective):
         elif candidate_success_rate > self.high:
             diagnostic = "too easy"
             suggestion = "Increase difficulty"
+        else:
+            diagnostic = "in target band"
+            suggestion = ""
 
         c, h = (self.low + self.high) / 2, (self.high - self.low) / 2
         score = max(0, 1 - abs(candidate_success_rate - c) / h)
@@ -79,7 +82,8 @@ class TargetSuccessBandObjective(Objective):
             score=score,
             diagnostic=(
                 f"candidate successs rate={candidate_success_rate:.2f}, ",
-                diagnostic
+                f"target_band=[{self.low:.2f}, {self.high:.2f}], "
+                f"{diagnostic}"
             ),
             suggestion=suggestion
         )
