@@ -17,6 +17,6 @@ class BlockActionHarness(EnvHarness):
                 truncated=False,
                 info={
                     "blocked": True,
-                    "reason": f"Blocked Actoin {self.block_action}"
+                    "reason": f"Blocked Action {self.block_action}"
                 }
             )
