@@ -12,18 +12,16 @@ class Policy(ABC):
 
 class ScriptedPolicy(Policy):
     def __init__(self, actions: list[Action]):
-        super().__init__()
-        self.actions = actions
+        self.actions = list(actions)
         self.index = 0
 
     def reset(self):
         self.index = 0
 
-    def act(self, observations):
+    def act(self, observations: Observation) -> Action:
         if self.index >= len(self.actions):
             raise RuntimeError("script exhausted")
         action = self.actions[self.index]
         self.index += 1
         return action
 
-    
