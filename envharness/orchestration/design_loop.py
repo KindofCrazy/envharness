@@ -30,7 +30,7 @@ def run_design_loop(
     validation_rollouts: int = 5,
     min_success_rate: float = 0.5,
     **reset_kwargs,
-) -> tuple[list[tuple[Trace, list[tuple[DesignProposal, Trace]], bool]], ActionableEnv]:
+) -> tuple[list[tuple[Trace, list[tuple[DesignProposal, ValidationBatch]], bool]], ActionableEnv]:
     designer.reset()
 
     current_env = base_env
@@ -41,7 +41,7 @@ def run_design_loop(
         proposal_trace = run_episode(current_env, policy, *reset_args, **reset_kwargs)
         proposal = designer.propose(proposal_trace)
 
-        attempts = validate_with_revisions(base_env, proposal, policy, designer, revision_budget, *reset_args, **reset_kwargs)
+        attempts = validate_with_revisions(base_env, proposal, policy, designer, *reset_args, revision_budget=revision_budget, validation_rollouts=validation_rollouts, min_success_rate=min_success_rate, **reset_kwargs)
         final_proposal, final_validation_batch = attempts[-1]
         accepted = validation_passes(final_validation_batch, min_success_rate)
         current_env, accepted = select_next_env(base_env, current_env, final_proposal.candidate, accepted)
@@ -86,8 +86,8 @@ def validation_passes(
     batch: ValidationBatch,
     min_success_rate: float
 ) -> bool:
-    if batch not in (0, 1):
-        raise ValueError("ValidationBatch success rate must in (0,1)")
+    if min_success_rate not in (0, 1):
+        raise ValueError("min_success_rate must in (0,1)")
     return batch.success_rate >= min_success_rate
 
 def select_next_env(
@@ -100,37 +100,15 @@ def select_next_env(
         return build_env_stack(base_env, candidate), True
     return current_env, False
 
-def validate_with_one_revision(
-    base_env: ActionableEnv,
-    proposal: DesignProposal,
-    policy: Policy,
-    designer: Designer,
-    *reset_args,
-    **reset_kwargs,
-) -> list[tuple[DesignProposal, Trace]]:
-    attempts = []
-
-    validation_trace = validate_candidate(base_env, proposal.candidate, policy, *reset_args, **reset_kwargs)
-    attempts.append((proposal, validation_trace))
-
-    if validation_trace.success:
-        return attempts
-
-    proposal = designer.revise(proposal, validation_trace)
-    validation_trace = validate_candidate(base_env, proposal.candidate, policy, *reset_args, **reset_kwargs)
-    attempts.append((proposal, validation_trace))
-
-    return attempts
-
 def validate_with_revisions(
     base_env: ActionableEnv,
     proposal: DesignProposal,
     policy: Policy,
     designer: Designer,
+    *reset_args,
     max_revisions: int,
     num_rollouts: int,
     min_success_rate: float,
-    *reset_args,
     **reset_kwargs,
 ) -> list[tuple[DesignProposal, ValidationBatch]]:
     attempts = []
@@ -138,7 +116,7 @@ def validate_with_revisions(
     validation_batch = validate_candidate_k(base_env, proposal.candidate, policy, num_rollouts, *reset_args, **reset_kwargs)
     attempts.append((proposal, validation_batch))
 
-    if validation_passes(validation_batch):
+    if validation_passes(validation_batch, min_success_rate):
         return attempts
 
     while max_revisions > 0:
