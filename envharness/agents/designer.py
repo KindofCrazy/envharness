@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from envharness.core.types import Trace, Candidate
+from envharness.core.types import Trace, Candidate, Diagnosis
 
 class Designer(ABC):
 
@@ -7,8 +7,16 @@ class Designer(ABC):
         pass
 
     @abstractmethod
-    def propose(self, trace: Trace) -> Candidate:
+    def diagnose(self, trace: Trace) -> Diagnosis:
         ...
+
+    @abstractmethod
+    def write(self, diagnosis: Diagnosis) -> Candidate:
+        ...
+
+    def propose(self, trace: Trace) -> Candidate:
+        diagnosis = self.diagnose(trace)
+        return self.write(diagnosis)
 
 class ScriptedDesigner(Designer):
 
@@ -19,10 +27,15 @@ class ScriptedDesigner(Designer):
     def reset(self):
         self.index = 0
 
-    def propose(self, trace: Trace) -> Candidate:
+    def diagnose(self, trace: Trace) -> Diagnosis:
+        return Diagnosis(summary="scripted diagnosis")
+
+    def write(self, diagnosis: Diagnosis) -> Candidate:
         if self.index >= len(self.candidate):
             raise RuntimeError("designer script exhausted")
 
         candidate = self.candidates[self.index]
         self.index += 1
         return candidate
+
+    def propose(self, trace: Trace) -> Candidate:
