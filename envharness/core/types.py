@@ -58,3 +58,13 @@ class DesignProposal:
 @dataclass
 class ValidationBatch:
     traces: list[Trace] = field(default_factory=list)
+
+    @property
+    def success_count(self) -> int:
+        return sum(trace.success for trace in self.traces)
+
+    @property
+    def success_rate(self) -> float:
+        if not self.traces:
+            return 0.0
+        return self.success_count / len(self.traces)

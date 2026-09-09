@@ -1,7 +1,7 @@
 from envharness.core.actionable_env import ActionableEnv
 from envharness.agents.policy import Policy
 from envharness.agents.designer import Designer
-from envharness.core.types import Trace, Candidate, DesignProposal
+from envharness.core.types import Trace, Candidate, DesignProposal, ValidationBatch
 from envharness.orchestration.builder import build_env_stack
 from envharness.orchestration.runner import run_episode
 
@@ -27,6 +27,8 @@ def run_design_loop(
     num_iterations: int,
     *reset_args,
     revision_budget: int = 1,
+    validation_rollouts: int = 5,
+    min_success_rate: float = 0.5,
     **reset_kwargs,
 ) -> tuple[list[tuple[Trace, list[tuple[DesignProposal, Trace]], bool]], ActionableEnv]:
     designer.reset()
@@ -40,9 +42,9 @@ def run_design_loop(
         proposal = designer.propose(proposal_trace)
 
         attempts = validate_with_revisions(base_env, proposal, policy, designer, revision_budget, *reset_args, **reset_kwargs)
-        final_proposal, final_validation_trace = attempts[-1]
-        current_env, accepted = select_next_env(base_env, current_env, final_proposal.candidate, final_validation_trace)
-
+        final_proposal, final_validation_batch = attempts[-1]
+        accepted = validation_passes(final_validation_batch, min_success_rate)
+        current_env, accepted = select_next_env(base_env, current_env, final_proposal.candidate, accepted)
         history.append((proposal_trace, attempts, accepted))
 
     return history, current_env
@@ -58,15 +60,44 @@ def validate_candidate(
     validation_trace = run_episode(candidate_env, policy, *reset_args, **reset_kwargs)
     return validation_trace
 
+def validate_candidate_k(
+    base_env: ActionableEnv,
+    candidate: Candidate,
+    policy: Policy,
+    num_rollouts: int,
+    *reset_args,
+    **reset_kwargs,
+) -> ValidationBatch:
+    if (num_rollouts <= 0):
+        raise ValueError("num_rollouts must be positive")
+
+    candidate_env = build_env_stack(base_env, candidate)
+
+    traces = []
+    for _ in range(num_rollouts):
+        trace = run_episode(candidate_env, policy, *reset_args, **reset_kwargs)
+        traces.append(trace)
+
+    return ValidationBatch(
+        traces=list(traces)
+    )
+
+def validation_passes(
+    batch: ValidationBatch,
+    min_success_rate: float
+) -> bool:
+    if batch not in (0, 1):
+        raise ValueError("ValidationBatch success rate must in (0,1)")
+    return batch.success_rate >= min_success_rate
+
 def select_next_env(
     base_env: ActionableEnv,
     current_env: ActionableEnv,
     candidate: Candidate,
-    validation_trace: Trace
+    accepted: bool
 ) -> tuple[ActionableEnv, bool]:
-    if validation_trace.success:
-        candidate_env = build_env_stack(base_env, candidate)
-        return candidate_env, True
+    if accepted:
+        return build_env_stack(base_env, candidate), True
     return current_env, False
 
 def validate_with_one_revision(
@@ -97,24 +128,26 @@ def validate_with_revisions(
     policy: Policy,
     designer: Designer,
     max_revisions: int,
+    num_rollouts: int,
+    min_success_rate: float,
     *reset_args,
     **reset_kwargs,
-) -> list[tuple[DesignProposal, Trace]]:
+) -> list[tuple[DesignProposal, ValidationBatch]]:
     attempts = []
 
-    validation_trace = validate_candidate(base_env, proposal.candidate, policy, *reset_args, **reset_kwargs)
-    attempts.append((proposal, validation_trace))
+    validation_batch = validate_candidate_k(base_env, proposal.candidate, policy, num_rollouts, *reset_args, **reset_kwargs)
+    attempts.append((proposal, validation_batch))
 
-    if validation_trace.success:
+    if validation_passes(validation_batch):
         return attempts
 
     while max_revisions > 0:
         max_revisions -= 1
-        proposal = designer.revise(proposal, validation_trace)
-        validation_trace = validate_candidate(base_env, proposal.candidate, policy, *reset_args, **reset_kwargs)
-        attempts.append((proposal, validation_trace))
+        proposal = designer.revise(proposal, validation_batch)
+        validation_batch = validate_candidate_k(base_env, proposal.candidate, policy, num_rollouts, *reset_args, **reset_kwargs)
+        attempts.append((proposal, validation_batch))
 
-        if validation_trace.success:
+        if validation_passes(validation_batch, min_success_rate):
             break
 
     return attempts
