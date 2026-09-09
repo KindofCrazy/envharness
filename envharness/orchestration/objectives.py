@@ -81,7 +81,7 @@ class TargetSuccessBandObjective(Objective):
             satisfied=satisfied,
             score=score,
             diagnostic=(
-                f"candidate successs rate={candidate_success_rate:.2f}, "
+                f"candidate success rate={candidate_success_rate:.2f}, "
                 f"target_band=[{self.low:.2f}, {self.high:.2f}], "
                 f"{diagnostic}"
             ),
