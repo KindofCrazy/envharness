@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
+from enum import Enum
 
 @dataclass
 class Action:
@@ -98,3 +99,23 @@ class DesignIterationResult:
     proposal_trace: Trace
     attempts: list[ValidationAttempt] = field(default_factory=list)
     accepted: bool = False
+
+class Decision(str, Enum):
+    ACCEPT = "accept"
+    REFINE = "refine"
+    REJECT = "reject"
+
+@dataclass
+class FailureAnalysis:
+    primary_axis: (
+        Literal["S0", "A", "O", "T", "R", "task_unerstranding", "none"] | None
+    ) = None
+
+    label: str = ""
+    description: str = ""
+
+@dataclass
+class DecideResult:
+    decision: Decision
+    failure_analysis: FailureAnalysis | None = None
+    rationale: str = ""
