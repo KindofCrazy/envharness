@@ -18,3 +18,31 @@ def run_design_step(
     new_env = build_env_stack(base_env, candidate)
 
     return trace, candidate, new_env
+
+def run_design_loop(
+    base_env: ActionableEnv,
+    policy: Policy,
+    designer: Designer,
+    num_iterations: int,
+    *reset_args,
+    **reset_kwargs,
+) -> tuple[list[Trace, Candidate], ActionableEnv]:
+    designer.reset()
+
+    current_env = base_env
+    history = []
+
+    while num_iterations > 0:
+        num_iterations -= 1
+        trace, candidate, new_env = run_design_step(
+            base_env,
+            current_env,
+            policy,
+            designer,
+            *reset_args,
+            **reset_kwargs,
+        )
+        current_env = new_env
+        history.append([trace, candidate])
+
+    return history, current_env
