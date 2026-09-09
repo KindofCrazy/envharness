@@ -31,11 +31,10 @@ class ScriptedDesigner(Designer):
         return Diagnosis(summary="scripted diagnosis")
 
     def write(self, diagnosis: Diagnosis) -> Candidate:
-        if self.index >= len(self.candidate):
+        if self.index >= len(self.candidates):
             raise RuntimeError("designer script exhausted")
 
         candidate = self.candidates[self.index]
         self.index += 1
         return candidate
 
-    def propose(self, trace: Trace) -> Candidate:
