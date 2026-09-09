@@ -18,7 +18,7 @@ class ScriptedPolicy(Policy):
     def reset(self):
         self.index = 0
 
-    def act(self, observations: Observation) -> Action:
+    def act(self, observation: Observation) -> Action:
         if self.index >= len(self.actions):
             raise RuntimeError("script exhausted")
         action = self.actions[self.index]
