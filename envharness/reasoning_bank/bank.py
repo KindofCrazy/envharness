@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from dataclasses import dataclass, field, asdict
+from .embed import cosine
 
 @dataclass
 class MemoryItem:
@@ -60,3 +61,17 @@ class Bank:
                 items.append(MemoryItem(**data))
 
         return cls(items)
+
+    def retrieve(self, query_embedding: list[float], k: int = 5, consine_threshold: float=0.0) -> list[MemoryItem]:
+        if k <= 0:
+            raise ValueError("k must be positive")
+        if not self.items:
+            return []
+
+        scored = [(cosine(query_embedding, item), item) for item in self.items]
+        scored = [(score, item) for score, item in scored if score > consine_threshold]
+        if not scored: return []
+
+        scored.sort(key=lambda pair: pair[0], reversed=True)
+        return [item for _, item in scored[:k]]
+    
