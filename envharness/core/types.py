@@ -45,3 +45,7 @@ class Trace:
 class Candidate:
     rules_code: str = ""
     in_env_actions: list[Action] = field(default_factory=list)
+
+@dataclass
+class Diagnosis:
+    summary: str
