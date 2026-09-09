@@ -5,10 +5,10 @@ def cosine(a: list[float], b: list[float]) -> float:
         )
 
     s, na, nb = 0.0, 0.0, 0.0
-    for x, y in zip(a. b):
-        s += a * b
+    for x, y in zip(a, b):
+        s += x * y
         na += x * x
-        nb = y * y
+        nb += y * y
 
     return s / max((na * nb) ** 0.5, 1e-9)
 
