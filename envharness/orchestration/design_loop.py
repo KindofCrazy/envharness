@@ -46,3 +46,14 @@ def run_design_loop(
         history.append((trace, candidate))
 
     return history, current_env
+
+def validate_candidate(
+    base_env: ActionableEnv,
+    candidate: Candidate,
+    policy: Policy,
+    *reset_args,
+    **reset_kwargs,
+) -> Trace:
+    candidate_env = build_env_stack(base_env, candidate)
+    validation_trace = run_episode(candidate_env, policy, *reset_args, **reset_kwargs)
+    return validation_trace
