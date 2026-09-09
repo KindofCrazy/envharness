@@ -27,7 +27,7 @@ def run_design_loop(
     num_iterations: int,
     *reset_args,
     **reset_kwargs,
-) -> tuple[list[tuple[Trace, DesignProposal, Trace, bool]], ActionableEnv]:
+) -> tuple[list[tuple[Trace, list[tuple[DesignProposal, Trace]], bool]], ActionableEnv]:
     designer.reset()
 
     current_env = base_env
@@ -38,11 +38,12 @@ def run_design_loop(
         proposal_trace = run_episode(current_env, policy, *reset_args, **reset_kwargs)
         proposal = designer.propose(proposal_trace)
         candidate = proposal.candidate
-    
-        validation_trace = validate_candidate(base_env, candidate, policy, *reset_args, **reset_kwargs)
-        current_env, accepted = select_next_env(base_env, current_env, candidate, validation_trace)
 
-        history.append((proposal_trace, proposal, validation_trace, accepted))
+        attempts = validate_with_one_revision(base_env, proposal, policy, designer, *reset_args, **reset_kwargs)
+        final_proposal, final_validation_trace = attempts[-1]
+        current_env, accepted = select_next_env(base_env, current_env, candidate, final_validation_trace)
+
+        history.append((proposal_trace, attempts, accepted))
 
     return history, current_env
 
