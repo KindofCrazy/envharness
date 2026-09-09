@@ -40,3 +40,8 @@ class Trace:
     initial_observation: Observation
     steps: list[Step] = field(default_factory=list)
     success: bool = False
+
+@dataclass
+class Candidate:
+    rules_code: str = ""
+    in_env_actions: list[Action] = field(default_factory=list)
