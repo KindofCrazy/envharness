@@ -15,6 +15,7 @@ def load_rules_subclass(code: str) -> type:
         "EnvResponse": EnvResponse,
         "Rules": Rules
     }
+
     try:
         compiled = compile(code, "<rules>", "exec")
     except SyntaxError as e:
