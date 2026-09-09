@@ -57,3 +57,14 @@ def validate_candidate(
     candidate_env = build_env_stack(base_env, candidate)
     validation_trace = run_episode(candidate_env, policy, *reset_args, **reset_kwargs)
     return validation_trace
+
+def select_next_env(
+    base_env: ActionableEnv,
+    current_env: ActionableEnv,
+    candidate: Candidate,
+    validation_trace: Trace
+) -> tuple[ActionableEnv, bool]:
+    if validation_trace.success:
+        candidate_env = build_env_stack(base_env, candidate)
+        return candidate_env, True
+    return current_env, False
