@@ -68,3 +68,12 @@ class ValidationBatch:
         if not self.traces:
             return 0.0
         return self.success_count / len(self.traces)
+
+@dataclass
+class ValidationComparison:
+    baseline: ValidationBatch
+    candidate: ValidationBatch
+
+    @property
+    def delta_success_rate(self) -> float:
+        return self.candidate.success_rate - self.baseline.success_rate
