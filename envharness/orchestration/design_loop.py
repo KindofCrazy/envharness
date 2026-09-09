@@ -67,3 +67,25 @@ def select_next_env(
         candidate_env = build_env_stack(base_env, candidate)
         return candidate_env, True
     return current_env, False
+
+def validate_with_one_revision(
+    base_env: ActionableEnv,
+    proposal: DesignProposal,
+    policy: Policy,
+    designer: Designer,
+    *reset_args,
+    **reset_kwargs,
+) -> list[tuple[DesignProposal, Trace]]:
+    attempts = []
+
+    validation_trace = validate_candidate(base_env, proposal.candidate, policy, *reset_args, **reset_kwargs)
+    attempts.append((proposal, validation_trace))
+
+    if validation_trace.success:
+        return attempts
+
+    proposal = designer.revise(proposal)
+    validation_trace = validate_candidate(base_env, proposal.candidate, policy, *reset_args, **reset_kwargs)
+    attempts.append((proposal, validation_trace))
+
+    return attempts
