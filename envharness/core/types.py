@@ -87,6 +87,12 @@ class ObjectiveResult:
     suggestion: str = ""
 
 @dataclass
+class ObjectiveSignal:
+    score: float
+    diagnostic: str = ""
+    suggestion: str = ""
+
+@dataclass
 class ValidationAttempt:
     proposal: DesignProposal
     validation: ValidationBatch

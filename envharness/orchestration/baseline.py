@@ -1,6 +1,6 @@
 from envharness.core.types import ValidationBatch, BaselineRolloutSummary, BaselineSnapshot
 
-def summarize(batch: ValidationBatch) -> BaselineSnapshot:
+def summarize_baseline(batch: ValidationBatch) -> BaselineSnapshot:
     summaries = [BaselineRolloutSummary(
         success=trace.success,
         steps=len(trace.steps)
