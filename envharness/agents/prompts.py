@@ -80,7 +80,7 @@ Use only tool names and kwargs allowed by the TOOLS schema.
 Do not change the environment's underlying success verifier.
 """.strip()
 
-DESIGNER_SYSTEM_PROMPT = """
+DESIGNER_SYSTEM_PROMPT = f"""
 You are an environment designer.
 
 Your job is to modify the environment experienced by a policy
@@ -109,7 +109,7 @@ in the environment-state schema.
 Do not invent tool names or env_state fields.
 
 {RULES_RUNTIME_CONTRACT}
-"""
+""".strip()
 
 def render_action(action: Action) -> str:
     return json.dumps(
@@ -123,7 +123,7 @@ def render_action(action: Action) -> str:
 def render_trace(trace: Trace) -> str:
     lines = [
         (
-            f"error={trace.error or 'none'}"
+            f"error={trace.error or 'none'}, "
             f"kind={trace.kind.value}, "
             f"task_id={trace.task_id}, "
             f"attempt_idx={trace.attempt_idx}, "
