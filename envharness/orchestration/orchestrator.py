@@ -50,6 +50,7 @@ def _evaluate_env_k(
     trace_kind: TraceKind = TraceKind.EXPLORATION,
     task_id: int | str | None = None,
     attempt_idx: int | None = None,
+    max_steps: int = 10,
     **reset_kwargs
 ) -> ValidationBatch:
     if k <= 0:
@@ -57,7 +58,7 @@ def _evaluate_env_k(
 
     traces = []
     for rollout_idx in range(k):
-        traces.append(run_episode(env, policy, *reset_args, trace_kind=trace_kind, task_id=task_id, attempt_idx=attempt_idx, rollout_idx=rollout_idx, **reset_kwargs))
+        traces.append(run_episode(env, policy, *reset_args, trace_kind=trace_kind, task_id=task_id, attempt_idx=attempt_idx, rollout_idx=rollout_idx, max_steps=max_steps, **reset_kwargs))
 
     return ValidationBatch(
         traces=list(traces)
@@ -72,6 +73,7 @@ def _evaluate_candidate_k(
     trace_kind: TraceKind = TraceKind.EXPLORATION,
     task_id: int | str | None = None,
     attempt_idx: int | None = None,
+    max_steps: int = 10,
     **reset_kwargs
 ) -> ValidationBatch:
     try:
@@ -101,7 +103,7 @@ def _evaluate_candidate_k(
 
         return ValidationBatch(traces=traces)
 
-    return _evaluate_env_k(candidate_env, policy, k, *reset_args, trace_kind=trace_kind, task_id=task_id, attempt_idx=attempt_idx, **reset_kwargs)
+    return _evaluate_env_k(candidate_env, policy, k, *reset_args, trace_kind=trace_kind, task_id=task_id, attempt_idx=attempt_idx, max_steps=max_steps, **reset_kwargs)
 
 def run_orchestrator_task(
     base_env: ActionableEnv,
@@ -114,6 +116,7 @@ def run_orchestrator_task(
     history_traces: list[Trace] | None = None,
     validation_rollouts: int = 5,
     objective: MutationObjective | None = None,
+    max_steps: int = 10,
     **reset_kwargs,
 ) -> OrchestratorResult:
     history = list(history_traces or [])
@@ -183,6 +186,7 @@ def run_orchestrator(
     *,
     validation_rollouts: int = 5,
     objective: MutationObjective | None = None,
+    max_steps: int = 10,
 ) -> OrchestratorRunResult:
     designer.reset()
 
@@ -201,6 +205,7 @@ def run_orchestrator(
             history_traces=history,
             validation_rollouts=validation_rollouts,
             objective=objective,
+            max_steps=max_steps,
             **task.reset_kwargs,
         )
 

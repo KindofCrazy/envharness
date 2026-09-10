@@ -10,6 +10,7 @@ def run_episode(
     task_id: int | str | None = None,
     attempt_idx: int | None = None,
     rollout_idx: int | None = None,
+    max_steps: int = 10,
     **reset_kwargs,
 ) -> Trace:
     policy.reset()
@@ -38,7 +39,7 @@ def run_episode(
         rollout_idx=rollout_idx
     )
 
-    while True:
+    for _ in range(max_steps):
         try:
             action = policy.act(observation)
         except Exception as exc:
@@ -67,6 +68,8 @@ def run_episode(
         observation = response.observation
         if response.terminated or response.truncated:
             break
+        elif trace.steps == max_steps:
+            trace.steps[-1].response.truncated = True
 
     try:
         evaluation = env.evaluate()
