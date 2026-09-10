@@ -116,3 +116,16 @@ class Toy24Env(ActionableEnv):
         )
 
         return env
+
+    @classmethod
+    def env_state_schema(cls) -> str:
+        return (
+            "env_state is a Toy24State with fields:\n"
+            "  target: int\n"
+            "  initial_numbers: list[int]\n"
+            "  current_numbers: list[float]\n"
+            "  history: list[str]\n"
+            "  stopped: bool\n"
+            "  success: bool\n"
+            "  step_count: int"
+        )

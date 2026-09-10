@@ -102,6 +102,8 @@ def run_orchestrator_task(
 
     ctx = DesignerContext(
         history_traces=history,
+        tool_schema=base_env.tool_schemas(),
+        env_state_schema=base_env.env_state_schema(),
         task_id=task_id,
         task_description=task_description,
         baseline=baseline,
