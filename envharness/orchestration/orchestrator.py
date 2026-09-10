@@ -1,3 +1,4 @@
+from typing import Any
 from dataclasses import dataclass, field
 from envharness.core.types import DesignProposal, ValidationBatch, DecideResult, BaselineSnapshot, Candidate, Trace, Decision, TraceKind
 from envharness.orchestration.runner import run_episode
@@ -18,8 +19,28 @@ class OrchestratorAttempt:
 @dataclass
 class OrchestratorResult:
     baseline: BaselineSnapshot
+    baseline_validation: ValidationBatch
     attempts: list[OrchestratorAttempt] = field(default_factory=list)
     accepted_candidate: Candidate | None = None
+
+    @property
+    def traces(self) -> list[Trace]:
+        result = list(self.baseline_validation.traces)
+        for attempt in self.attempts:
+            result.extend(attempt.validation.traces)
+        return result
+
+@dataclass
+class TaskSpec:
+    task_id: int | str
+    task_description: str = ""
+    reset_args: tuple[Any, ...] = field(default_factory=tuple)
+    reset_kwargs: dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class OrchestratorRunResult:
+    task_results: list[OrchestratorResult] = field(default_factory=list)
+    history_traces: list[Trace] = field(default_factory=list)
 
 def _evaluate_env_k(
     env,
@@ -99,7 +120,7 @@ def run_orchestrator_task(
             OrchestratorAttempt(
                 proposal=proposal,
                 validation=validation,
-                decision=decision
+                decision=decision,
             )
         )
         ctx.history_traces.extend(validation.traces)
@@ -120,6 +141,44 @@ def run_orchestrator_task(
 
     return OrchestratorResult(
         baseline=baseline,
+        baseline_validation=baseline_batch,
         attempts=attempts,
         accepted_candidate=accepted_candidate
+    )
+
+def run_orchestrator(
+    base_env: ActionableEnv,
+    policy: Policy,
+    designer: Designer,
+    budget: BudgetPolicy,
+    tasks: list[TaskSpec],
+    *,
+    validation_rollouts: int = 5,
+    objective: MutationObjective | None = None,
+) -> OrchestratorRunResult:
+    designer.reset()
+
+    history: list[Trace] = []
+    task_results = []
+
+    for task in tasks:
+        result = run_orchestrator_task(
+            base_env=base_env,
+            policy=policy,
+            designer=designer,
+            budget=budget,
+            *task.reset_args,
+            task_id=task.task_id,
+            task_description=task.task_description,
+            history_traces=history,
+            validation_rollouts=validation_rollouts,
+            objective=objective,
+        )
+
+        task_results.append(result)
+        history.extend(result.traces)
+
+    return OrchestratorRunResult(
+        task_results=task_results,
+        history_traces=history,
     )
