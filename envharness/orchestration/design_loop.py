@@ -15,7 +15,7 @@ def run_design_step(
     **reset_kwargs,
 ) -> tuple[Trace, DesignProposal, ActionableEnv]:
     trace = run_episode(current_env, policy, *reset_args, **reset_kwargs)
-    proposal = designer.propose(trace)
+    proposal = designer.propose_from_trace(trace)
     candidate = proposal.candidate
     new_env = build_env_stack(base_env, candidate)
 
@@ -40,7 +40,7 @@ def run_design_loop(
         num_iterations -= 1
 
         proposal_trace = run_episode(current_env, policy, *reset_args, **reset_kwargs)
-        proposal = designer.propose(proposal_trace)
+        proposal = designer.propose_from_trace(proposal_trace)
 
         baseline_batch = evaluate_env_k(current_env, policy, validation_rollouts, *reset_args, **reset_kwargs)
         attempts = validate_with_revisions(base_env, proposal, policy, designer, *reset_args, max_revisions=revision_budget, num_rollouts=validation_rollouts, baseline_batch=baseline_batch, objective=objective, **reset_kwargs)

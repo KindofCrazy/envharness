@@ -23,7 +23,11 @@ class Designer(ABC):
     def write(self, diagnosis: Diagnosis) -> Candidate:
         ...
 
-    def propose(self, trace: Trace) -> DesignProposal:
+    @abstractmethod
+    def propose(self, ctx: DesignerContext) -> DesignProposal:
+        ...
+
+    def propose_from_trace(self, trace: Trace) -> DesignProposal:
         diagnosis = self.diagnose(trace)
         candidate = self.write(diagnosis)
         return DesignProposal(
@@ -66,6 +70,21 @@ class ScriptedDesigner(Designer):
         candidate = self.candidates[self.index]
         self.index += 1
         return candidate
+
+    def propose(
+        self,
+        ctx: DesignerContext,
+    ) -> DesignProposal:
+        diagnosis = Diagnosis(
+            summary="scripted proposal"
+        )
+
+        candidate = self.write(diagnosis)
+
+        return DesignProposal(
+            diagnosis=diagnosis,
+            candidate=candidate,
+        )
 
     def revise(self, attempt: ValidationAttempt) -> DesignProposal:
         diagnosis = Diagnosis(summary="Scripted Designer")
