@@ -87,7 +87,7 @@ class OpenAICompatibleClient(LLMClient):
 
         if self.thinking is not None:
             payload["thinking"] = {
-                "type"(
+                "type": (
                     "enabled" if self.thinking else "disabled"
                 )
             }
