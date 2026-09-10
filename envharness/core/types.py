@@ -36,7 +36,6 @@ class Step:
     action: Action
     response: EnvResponse
 
-@dataclass
 class TraceKind(str, Enum):
     BASELINE = "baseline"
     EXPLORATION = "exploration"
@@ -51,8 +50,8 @@ class Trace:
     kind: TraceKind = TraceKind.EXPLORATION
 
     task_id: int | str | None = None
-    attempt_idx = int | None = None
-    rollout_idx = int | None = None
+    attempt_idx: int | None = None
+    rollout_idx: int | None = None
 
 @dataclass
 class Candidate:
