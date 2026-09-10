@@ -144,7 +144,7 @@ def run_orchestrator_task(
     accepted_candidate = None
     while True:
         attempt_idx = len(attempts)
-        validation = _evaluate_candidate_k(base_env, proposal.candidate, policy, validation_rollouts, *reset_args, trace_kind=TraceKind.EXPLORATION, task_id=task_id, attempt_idx=attempt_idx, **reset_kwargs)
+        validation = _evaluate_candidate_k(base_env, proposal.candidate, policy, validation_rollouts, *reset_args, trace_kind=TraceKind.EXPLORATION, task_id=task_id, attempt_idx=attempt_idx, max_steps=max_steps, **reset_kwargs)
         decision = designer.decide(proposal.candidate, validation, ctx)
 
         attempts.append(
