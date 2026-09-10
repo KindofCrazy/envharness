@@ -80,7 +80,7 @@ def run_orchestrator_task(
     baseline = summarize_baseline(baseline_batch)
 
     ctx = DesignerContext(
-        history_traces=list(history_traces or []),
+        history_traces=history,
         task_id=task_id,
         task_description=task_description,
         baseline=baseline,
@@ -103,7 +103,6 @@ def run_orchestrator_task(
             )
         )
         ctx.history_traces.extend(validation.traces)
-        ctx.objective_signal = objective.evaluate(validation.traces)
 
         if decision.decision == Decision.ACCEPT:
             for trace in attempts[-1].validation.traces:
