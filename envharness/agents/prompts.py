@@ -287,3 +287,13 @@ Return JSON only, with this shape:
   ]
 }}
 """
+    return [
+        Message(
+            role="system",
+            content=DESIGNER_SYSTEM_PROMPT.strip(),
+        ),
+        Message(
+            role="user",
+            content=user_prompt.strip(),
+        ),
+    ]

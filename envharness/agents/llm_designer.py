@@ -1,7 +1,7 @@
 import json
 
-from envharness.core.types import Action, Candidate, Diagnosis, DecideResult, Decision, FailureAnalysis
-from envharness.agents.designer import Designer, DesignerContext, DesignProposal
+from envharness.core.types import Action, Candidate, Diagnosis, DecideResult, Decision, FailureAnalysis, DesignProposal
+from envharness.agents.designer import Designer, DesignerContext
 from envharness.agents.prompts import build_propose_messages, build_decide_messages, build_refine_messages
 from envharness.infra.llm import LLMClient
 
