@@ -52,7 +52,7 @@ class ScriptedClient(LLMClient):
             content=content
         )
 
-def _message_to_dict(self, message) -> dict:
+def _message_to_dict(message) -> dict:
     return {
         "role": message.role,
         "content": message.content
@@ -61,8 +61,8 @@ def _message_to_dict(self, message) -> dict:
 class OpenAICompatibleClient(LLMClient):
 
     def __init__(self, model_id: str, base_url: str, api_key: str | None = None, timeout: float = 60.0):
-        self.model_idx = model_id
-        self.base_url = base_url
+        self.model_id = model_id
+        self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.timeout = timeout
 
