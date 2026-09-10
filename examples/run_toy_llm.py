@@ -8,12 +8,17 @@ from envharness.orchestration.orchestrator import (
     TaskSpec,
     run_orchestrator,
 )
+from envharness.orchestration.storage import TraceStore
+
+store = TraceStore(
+    Path("runs/toy24/traces.jsonl")
+)
 
 api_key_path = Path(__file__).parent / "api_key.txt"
-
 api_key = api_key_path.read_text(
     encoding="utf-8"
 ).strip()
+
 
 policy_client = OpenAICompatibleClient(
     model_id="deepseek-v4-flash",
@@ -78,6 +83,7 @@ result = run_orchestrator(
     tasks=tasks,
     validation_rollouts=2,
     max_steps=8,
+    trace_store=store
 )
 
 task_result = result.task_results[0]
@@ -125,3 +131,6 @@ print(
     "accepted:",
     task_result.accepted_candidate,
 )
+
+print()
+print("stored traces:", len(store))

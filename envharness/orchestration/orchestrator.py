@@ -9,7 +9,7 @@ from envharness.agents.designer import Designer, DesignerContext
 from envharness.orchestration.budget import BudgetPolicy
 from envharness.orchestration.baseline import summarize_baseline
 from envharness.orchestration.objectives import MutationObjective
-
+from envharness.orchestration.storage import TraceStore
 @dataclass
 class OrchestratorAttempt:
     proposal: DesignProposal
@@ -117,6 +117,7 @@ def run_orchestrator_task(
     validation_rollouts: int = 5,
     objective: MutationObjective | None = None,
     max_steps: int = 10,
+    trace_store: TraceStore | None = None,
     **reset_kwargs,
 ) -> OrchestratorResult:
     history = list(history_traces or [])
@@ -128,6 +129,9 @@ def run_orchestrator_task(
 
     baseline_batch = _evaluate_env_k(base_env, policy, validation_rollouts, *reset_args, trace_kind=TraceKind.BASELINE, task_id=task_id, max_steps=max_steps, **reset_kwargs)
     baseline = summarize_baseline(baseline_batch)
+    if trace_store is not None:
+        for trace in baseline_batch.traces:
+            trace_store.add(trace)
 
     ctx = DesignerContext(
         history_traces=history,
@@ -162,6 +166,10 @@ def run_orchestrator_task(
             accepted_candidate = proposal.candidate
             break
 
+        if trace_store is not None:
+            for trace in validation.traces:
+                trace_store.add(trace)
+
         if budget.should_stop(len(attempts), decision.decision, objective_signal):
             break
 
@@ -187,6 +195,7 @@ def run_orchestrator(
     validation_rollouts: int = 5,
     objective: MutationObjective | None = None,
     max_steps: int = 10,
+    trace_store: TraceStore | None = None,
 ) -> OrchestratorRunResult:
     designer.reset()
 
@@ -206,6 +215,7 @@ def run_orchestrator(
             validation_rollouts=validation_rollouts,
             objective=objective,
             max_steps=max_steps,
+            trace_store=trace_store,
             **task.reset_kwargs,
         )
 
