@@ -18,4 +18,4 @@ class EnvHarness(ActionableEnv):
         return self.inner.evaluate()
 
     def get_env_state(self):
-        return self.inner.ger_env_state()
+        return self.inner.get_env_state()

@@ -88,7 +88,27 @@ class Toy24Env(ActionableEnv):
         return self.state
 
     def save_state(self) -> dict:
-        ...
+        return {
+            "target": self.state.target,
+            "initial_numbers": list(self.state.initial_numbers),
+            "current_numbers": list(self.state.current_numbers),
+            "history": list(self.state.history),
+            "stopped": self.state.stopped,
+            "success": self.state.success,
+            "step_count": self.state.step_count,
+        }
 
     def from_state(cls, state) -> "Toy24Env":
-        ...
+        env = cls()
+
+        env.state = Toy24State(
+            target=state["target"],
+            initial_numbers=list(state["initial_numbers"]),
+            current_numbers=state["current_numbers"],
+            history=list(state["history"]),
+            stopped=state["stopped"],
+            success=state["success"],
+            step_count=state["step_count"],
+        )
+
+        return env

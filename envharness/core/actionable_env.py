@@ -29,6 +29,7 @@ class ActionableEnv(ABC):
             f"{type(self).__name__} does not implement save_state()"
         )
 
+    @classmethod
     def from_state(cls, state: dict) -> "ActionableEnv":
         raise NotImplementedError(
             f"{cls.__name__} does not implement from_state()"
