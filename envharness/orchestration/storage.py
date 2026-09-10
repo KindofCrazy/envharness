@@ -44,11 +44,11 @@ def _response_to_dict(
 
 def _response_from_dict(data: dict) -> EnvResponse:
     return EnvResponse(
-        observation=data["observation"],
+        observation=_observation_from_dict(data["observation"]),
         reward=data["reward"],
         terminated=data["terminated"],
         truncated=data["truncated"],
-        info=dict(data.get("info"), {}),
+        info=dict(data.get("info", {}),
     )
 
 def trace_to_dict(trace: Trace) -> dict:

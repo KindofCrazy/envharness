@@ -170,6 +170,9 @@ def run_orchestrator_task(
             for trace in validation.traces:
                 trace_store.add(trace)
 
+        if decision.decision == Decision.ACCEPT:
+            break
+
         if budget.should_stop(len(attempts), decision.decision, objective_signal):
             break
 
