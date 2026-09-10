@@ -163,10 +163,10 @@ def run_orchestrator(
 
     for task in tasks:
         result = run_orchestrator_task(
-            base_env=base_env,
-            policy=policy,
-            designer=designer,
-            budget=budget,
+            base_env,
+            policy,
+            designer,
+            budget,
             *task.reset_args,
             task_id=task.task_id,
             task_description=task.task_description,
