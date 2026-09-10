@@ -84,3 +84,11 @@ class Toy24Env(ActionableEnv):
             }
         )
 
+    def get_env_state(self) -> Toy24State:
+        return self.state
+
+    def save_state(self) -> dict:
+        ...
+
+    def from_state(cls, state) -> "Toy24Env":
+        ...
