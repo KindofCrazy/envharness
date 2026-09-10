@@ -1,6 +1,6 @@
 import json
 
-from envharness.core.types import Action, Trace
+from envharness.core.types import Action, Trace, Candidate, ValidationBatch
 from envharness.agents.designer import DesignerContext
 from envharness.infra.llm import Message
 
@@ -167,3 +167,123 @@ Return JSON only, with this shape:
             content=user_prompt.strip()
         )
     ]
+
+def render_candidate(candidate: Candidate) -> str:
+    actions = [
+        {
+            "name": action.name,
+            "kwargs": action.kwargs,
+        } 
+        for action in candidate.in_env_actions
+    ]
+
+    return (
+        "CANDIDATE\n"
+        f"rules_code:\n{candidate.rules_code or '(empty)'}\n\n"
+        "in_env_actions:\n"
+        + json.dumps(
+            actions,
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+
+def render_validation(validation: ValidationBatch) -> str:
+    parts = [
+        "Validation",
+        f"rollouts: {len(validation.traces)}",
+        f"successes: {validation.success_count}",
+        f"success_rate: {validation.success_rate}",
+    ]
+
+    for i, trace in enumerate(
+        validation.traces
+    ):
+        parts.append(
+            f"\nROLLOUT {i}\n"
+            + render_trace(trace)
+        )
+
+    return "\n".join(parts)
+
+def build_decide_messages(
+    ctx: DesignerContext,
+    candidate: Candidate,
+    validation: ValidationBatch,
+) -> list[Message]:
+    context = render_designer_context(ctx)
+    candidate_text = render_candidate(candidate)
+    validation_text = render_validation(validation)
+
+    user_prompt = f"""
+{context}
+
+{candidate_text}
+
+{validation_text}
+
+The candidate has now been evaluated.
+
+Decide whether to:
+- accept: keep this candidate
+- refine: modify this candidate based on what was learned
+- reject: abandon it and design a different candidate
+
+Return JSON only:
+
+{{
+  "decision": "accept | refine | reject",
+  "rationale": "short explanation",
+  "failure_analysis": {{
+    "primary_axis": "S0 | A | O | T | R | task_understanding | none",
+    "label": "short failure label",
+    "description": "what went wrong"
+  }}
+}}
+
+failure_analysis may be null when there is no meaningful failure.
+"""
+
+    return [
+        Message(
+            role="system",
+            content=DESIGNER_SYSTEM_PROMPT.strip(),
+        ),
+        Message(
+            role="user",
+            content=user_prompt.strip(),
+        ),
+    ]
+
+def build_refine_messages(
+    ctx: DesignerContext,
+    candidate: Candidate,
+    validation: ValidationBatch
+) -> list[Message]:
+    context = render_designer_context(ctx)
+
+    user_prompt = f"""
+{context}
+
+{render_candidate(candidate)}
+
+{render_validation(validation)}
+
+Refine the previous candidate based on these rollout results.
+
+Preserve useful parts of the previous mutation when appropriate,
+but change it if the evidence shows it is ineffective or harmful.
+
+Return JSON only, with this shape:
+
+{{
+  "diagnosis": "what should change and why",
+  "rules_code": "complete Python source or empty string",
+  "in_env_actions": [
+    {{
+      "name": "tool name",
+      "kwargs": {{}}
+    }}
+  ]
+}}
+"""

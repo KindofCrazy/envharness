@@ -1,8 +1,8 @@
 import json
 
-from envharness.core.types import Action, Candidate,  Diagnosis, DesignProposal
+from envharness.core.types import Action, Candidate, Diagnosis, DecideResult, Decision, FailureAnalysis
 from envharness.agents.designer import Designer, DesignerContext, DesignProposal
-from envharness.agents.prompts import build_propose_messages
+from envharness.agents.prompts import build_propose_messages, build_decide_messages, build_refine_messages
 from envharness.infra.llm import LLMClient
 
 def parse_proposal_response(content: str) -> DesignProposal:
@@ -75,6 +75,98 @@ def parse_proposal_response(content: str) -> DesignProposal:
         ),
     )
 
+def parse_decide_response(
+    content: str,
+) -> DecideResult:
+    try:
+        data = json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            "designer decide response "
+            "is not valid JSON"
+        ) from exc
+
+    if not isinstance(data, dict):
+        raise ValueError(
+            "designer decide response "
+            "must be a JSON object"
+        )
+
+    raw_decision = data.get("decision")
+
+    try:
+        decision = Decision(raw_decision)
+    except ValueError as exc:
+        raise ValueError(
+            f"invalid decision: {raw_decision}"
+        ) from exc
+
+    rationale = data.get(
+        "rationale",
+        "",
+    )
+
+    if not isinstance(rationale, str):
+        raise ValueError(
+            "rationale must be a string"
+        )
+
+    raw_failure = data.get(
+        "failure_analysis"
+    )
+
+    failure_analysis = None
+
+    if raw_failure is not None:
+        if not isinstance(
+            raw_failure,
+            dict,
+        ):
+            raise ValueError(
+                "failure_analysis "
+                "must be an object or null"
+            )
+
+        axis = raw_failure.get(
+            "primary_axis"
+        )
+
+        valid_axes = {
+            "S0",
+            "A",
+            "O",
+            "T",
+            "R",
+            "task_understanding",
+            "none",
+        }
+
+        if axis not in valid_axes:
+            raise ValueError(
+                f"invalid primary_axis: {axis}"
+            )
+
+        failure_analysis = FailureAnalysis(
+            primary_axis=axis,
+            label=str(
+                raw_failure.get(
+                    "label",
+                    "",
+                )
+            ),
+            description=str(
+                raw_failure.get(
+                    "description",
+                    "",
+                )
+            ),
+        )
+
+    return DecideResult(
+        decision=decision,
+        failure_analysis=failure_analysis,
+        rationale=rationale,
+    )
 
 class LLMDesigner(Designer):
 
@@ -94,9 +186,19 @@ class LLMDesigner(Designer):
         return parse_proposal_response(response.content)
 
     def decide(self, candidate, validation, ctx):
-        raise NotImplementedError(
-            "LLMDesigner.decide is not implemented yet"
+        messages = build_decide_messages(
+            ctx=ctx,
+            candidate=candidate,
+            validation=validation
         )
+
+        response = self.client.chat(
+            messages=messages,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens
+        )
+
+        return parse_decide_response(response.content)
 
     def refine(
         self,
@@ -104,6 +206,18 @@ class LLMDesigner(Designer):
         validation,
         ctx,
     ):
-        raise NotImplementedError(
-            "LLMDesigner.refine is not implemented yet"
-        )  
+        messages = build_refine_messages(
+            ctx,
+            candidate,
+            validation,
+        )
+
+        response = self.client.chat(
+            messages=messages,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+        )
+
+        return parse_proposal_response(
+            response.content
+        )
