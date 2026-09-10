@@ -48,7 +48,7 @@ def _response_from_dict(data: dict) -> EnvResponse:
         reward=data["reward"],
         terminated=data["terminated"],
         truncated=data["truncated"],
-        info=dict(data.get("info", {}),
+        info=dict(data.get("info", {})),
     )
 
 def trace_to_dict(trace: Trace) -> dict:

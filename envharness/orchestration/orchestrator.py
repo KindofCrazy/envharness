@@ -164,7 +164,6 @@ def run_orchestrator_task(
             for trace in attempts[-1].validation.traces:
                 trace.kind = TraceKind.ACCEPTED
             accepted_candidate = proposal.candidate
-            break
 
         if trace_store is not None:
             for trace in validation.traces:
