@@ -126,7 +126,7 @@ def run_orchestrator_task(
         else None
     )
 
-    baseline_batch = _evaluate_env_k(base_env, policy, validation_rollouts, *reset_args, trace_kind=TraceKind.BASELINE, task_id=task_id, **reset_kwargs)
+    baseline_batch = _evaluate_env_k(base_env, policy, validation_rollouts, *reset_args, trace_kind=TraceKind.BASELINE, task_id=task_id, max_steps=max_steps, **reset_kwargs)
     baseline = summarize_baseline(baseline_batch)
 
     ctx = DesignerContext(

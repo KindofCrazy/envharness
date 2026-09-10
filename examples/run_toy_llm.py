@@ -17,12 +17,6 @@ api_key = api_key_path.read_text(
     encoding="utf-8"
 ).strip()
 
-client = OpenAICompatibleClient(
-    model_id="deepseek-v4-flash",
-    base_url="https://api.deepseek.com",
-    api_key=api_key,
-)
-
 policy_client = OpenAICompatibleClient(
     model_id="deepseek-v4-flash",
     base_url="https://api.deepseek.com",

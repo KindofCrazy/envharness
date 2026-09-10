@@ -68,8 +68,10 @@ def run_episode(
         observation = response.observation
         if response.terminated or response.truncated:
             break
-        elif trace.steps == max_steps:
-            trace.steps[-1].response.truncated = True
+
+        if len(trace.steps) >= max_steps:
+            response.truncated = True
+            break
 
     try:
         evaluation = env.evaluate()
