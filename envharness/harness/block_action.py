@@ -2,7 +2,7 @@ from envharness.core.envharness import EnvHarness
 from envharness.core.types import EnvResponse, Action
 from envharness.core.registry import register_harness
 
-@register_harness("block_aciton")
+@register_harness("block_action")
 class BlockActionHarness(EnvHarness):
     def __init__(self, inner, block_action: str):
         super().__init__(inner)

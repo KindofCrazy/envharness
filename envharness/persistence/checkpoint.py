@@ -6,7 +6,7 @@ def dump_stack(env: ActionableEnv) -> dict:
     layers = []
     current = env
 
-    while isinstance(env, EnvHarness):
+    while isinstance(current, EnvHarness):
         layers.append(current)
         current = current.inner
 
@@ -17,8 +17,8 @@ def dump_stack(env: ActionableEnv) -> dict:
     for harness in reversed(layers):
         harnesses.append(
             {
-                "type": harnesses.harnedd_type(),
-                "state": harnesses.save_state()
+                "type": harness.harness_type(),
+                "state": harness.save_state()
             }
         )
 
