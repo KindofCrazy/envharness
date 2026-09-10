@@ -173,6 +173,7 @@ def run_orchestrator(
             history_traces=history,
             validation_rollouts=validation_rollouts,
             objective=objective,
+            **task.reset_kwargs,
         )
 
         task_results.append(result)
