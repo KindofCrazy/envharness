@@ -1,5 +1,3 @@
-import os
-
 from pathlib import Path
 from envharness.bridges.toy24.bridge import Toy24Env
 from envharness.infra.llm import OpenAICompatibleClient
