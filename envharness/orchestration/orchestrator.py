@@ -1,6 +1,6 @@
 from typing import Any
 from dataclasses import dataclass, field
-from envharness.core.types import DesignProposal, ValidationBatch, DecideResult, BaselineSnapshot, Candidate, Trace, Decision, TraceKind
+from envharness.core.types import Observation, DesignProposal, ValidationBatch, DecideResult, BaselineSnapshot, Candidate, Trace, Decision, TraceKind
 from envharness.orchestration.runner import run_episode
 from envharness.orchestration.builder import build_env_stack
 from envharness.core.actionable_env import ActionableEnv
@@ -74,7 +74,33 @@ def _evaluate_candidate_k(
     attempt_idx: int | None = None,
     **reset_kwargs
 ) -> ValidationBatch:
-    candidate_env = build_env_stack(base_env, candidate)
+    try:
+        candidate_env = build_env_stack(
+            base_env,
+            candidate,
+        )
+    except Exception as exc:
+        traces = []
+        for rollout_idx in range(k):
+            traces.append(
+                Trace(
+                    initial_observation=Observation(
+                        text="candidate failed to build"
+                    ),
+                    success=False,
+                    kind=trace_kind,
+                    task_id=task_id,
+                    attempt_idx=attempt_idx,
+                    rollout_idx=rollout_idx,
+                    error=(
+                        "candidate build failed: "
+                        f"{type(exc).__name__}: {exc}"
+                    ),
+                )
+            )
+
+        return ValidationBatch(traces=traces)
+
     return _evaluate_env_k(candidate_env, policy, k, *reset_args, trace_kind=trace_kind, task_id=task_id, attempt_idx=attempt_idx, **reset_kwargs)
 
 def run_orchestrator_task(

@@ -53,6 +53,8 @@ class Trace:
     attempt_idx: int | None = None
     rollout_idx: int | None = None
 
+    error: str | None = None
+
 @dataclass
 class Candidate:
     rules_code: str = ""
