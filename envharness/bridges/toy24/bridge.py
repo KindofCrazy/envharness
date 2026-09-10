@@ -98,6 +98,7 @@ class Toy24Env(ActionableEnv):
             "step_count": self.state.step_count,
         }
 
+    @classmethod
     def from_state(cls, state) -> "Toy24Env":
         env = cls()
 
