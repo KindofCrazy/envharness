@@ -7,7 +7,7 @@ class DesignerContext:
     history_traces: list[Trace] = field(default_factory=list)
     task_id: int | str = 0
     task_description: str = ""
-    basline = BaselineSnapshot | None = None
+    baseline: BaselineSnapshot | None = None
 
 
 class Designer(ABC):

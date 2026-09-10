@@ -11,6 +11,7 @@ def summarize(batch: ValidationBatch) -> BaselineSnapshot:
     return BaselineSnapshot(
         n=len(batch.traces),
         n_success=batch.success_count,
-        avg_success_steps=sum(success_steps) / len(success_steps) if success_steps > 0 else None,
+        success_rate=success_rate,
+        avg_success_steps=sum(success_steps) / len(success_steps) if success_steps else None,
         per_rollout=summaries,
     )
