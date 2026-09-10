@@ -108,7 +108,7 @@ class Decision(str, Enum):
 @dataclass
 class FailureAnalysis:
     primary_axis: (
-        Literal["S0", "A", "O", "T", "R", "task_unerstanding", "none"] | None
+        Literal["S0", "A", "O", "T", "R", "task_understanding", "none"] | None
     ) = None
 
     label: str = ""
