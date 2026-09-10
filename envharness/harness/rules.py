@@ -10,21 +10,25 @@ class Rules(EnvHarness):
     def __init__(self, inner):
         super().__init__(inner)
 
-    def filter_action(self, action: Action) -> Action | Blocked:
+    def filter_action(self, action: Action, env_state) -> Action | Blocked:
         return action
 
-    def modify_transition(self, action: Action, response: EnvResponse) -> EnvResponse:
+    def modify_transition(self, action: Action, response: EnvResponse, env_state) -> EnvResponse:
         return response
 
-    def filter_observation(self, observation: Observation) -> Observation:
+    def filter_observation(self, observation: Observation, env_state) -> Observation:
         return observation
 
     def step(self, action: Action) -> EnvResponse:
-        filtered = self.filter_action(action)
+        pre_state = self.inner.get_env_state()
+        filtered = self.filter_action(action, pre_state)
 
         if isinstance(filtered, Blocked):
+            observation = self.inner.observe()
+            observation = self.filter_observation(observation, pre_state)
+
             return EnvResponse(
-                observation=self.observe(),
+                observation=observation,
                 reward=0.0,
                 terminated=False,
                 truncated=False,
@@ -32,20 +36,24 @@ class Rules(EnvHarness):
                     "reason": filtered.reason
                 }
             )
-        else:
-            response = super().step(filtered)
-            response = self.modify_transition(filtered, response)
-            response.observation = self.filter_observation(response.observation)
+        
+        response = self.inner.step(filtered)
+        post_state = self.inner.get_env_state()
+
+        response = self.modify_transition(filtered, response, post_state)
+        response.observation = self.filter_observation(response.observation, post_state)
 
         return response
 
     def observe(self) -> Observation:
-        observation = super().observe()
-        return self.filter_observation(observation)
+        observation = self.inner.observe()
+        env_state = self.inner.get_env_state()
+        return self.filter_observation(observation, env_state)
 
     def reset(self, *args, **kwargs) -> Observation:
-        observation = super().reset(*args, **kwargs)
-        return self.filter_observation(observation)
+        observation = self.inner.reset(*args, **kwargs)
+        env_state = self.inner.get_env_state()
+        return self.filter_observation(observation, env_state)
 
     def save_state(self) -> dict:
         return {"rules_code": self.rules_code}
