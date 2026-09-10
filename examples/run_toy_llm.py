@@ -27,12 +27,14 @@ policy_client = OpenAICompatibleClient(
     model_id="deepseek-v4-flash",
     base_url="https://api.deepseek.com",
     api_key=api_key,
+    thinking=False
 )
 
 designer_client = OpenAICompatibleClient(
     model_id="deepseek-v4-flash",
     base_url="https://api.deepseek.com",
     api_key=api_key,
+    thinking=False
 )
 
 env = Toy24Env()

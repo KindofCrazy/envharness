@@ -60,11 +60,12 @@ def _message_to_dict(message) -> dict:
 
 class OpenAICompatibleClient(LLMClient):
 
-    def __init__(self, model_id: str, base_url: str, api_key: str | None = None, timeout: float = 60.0):
+    def __init__(self, model_id: str, base_url: str, api_key: str | None = None, timeout: float = 60.0, thinking: bool | None = None):
         self.model_id = model_id
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.timeout = timeout
+        self.thinking = thinking
 
     def chat(
         self,
@@ -83,6 +84,13 @@ class OpenAICompatibleClient(LLMClient):
 
         if max_tokens is not None:
             payload["max_tokens"] = max_tokens
+
+        if self.thinking is not None:
+            payload["thinking"] = {
+                "type"(
+                    "enabled" if self.thinking else "disabled"
+                )
+            }
 
         headers = {
             "Content-Type": "application/json",
@@ -122,6 +130,11 @@ class OpenAICompatibleClient(LLMClient):
         except urllib.error.URLError as exc:
             raise RuntimeError(
                 f"LLM connection failed: {exc}"
+            ) from exc
+        except TimeoutError as exc:
+            raise RuntimeError(
+                f"LLM request timed out after "
+                f"{self.timeout} seconds"
             ) from exc
 
         try:
