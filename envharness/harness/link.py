@@ -1,7 +1,9 @@
 from envharness.core.envharness import EnvHarness
 from envharness.core.actionable_env import ActionableEnv
 from envharness.core.types import EnvResponse, EvaluationResult
+from envharness.core.registry import register_harness
 
+@register_harness("link")
 class Link(EnvHarness):
     def __init__(self, env_a: ActionableEnv, env_b: ActionableEnv):
         super().__init__(env_a)

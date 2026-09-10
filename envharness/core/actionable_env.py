@@ -34,3 +34,7 @@ class ActionableEnv(ABC):
         raise NotImplementedError(
             f"{cls.__name__} does not implement from_state()"
         )
+
+    @classmethod
+    def env_type(cls) -> str:
+        raise NotImplementedError(f"{cls.__name__} has no env_type")

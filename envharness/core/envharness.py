@@ -29,3 +29,7 @@ class EnvHarness(ActionableEnv):
     @abstractmethod
     def from_state(cls, state: dict, inner: ActionableEnv | None = None) -> "EnvHarness":
         ...
+
+    @classmethod
+    def harness_type(cls) -> str:
+        raise NotImplementedError(f"{cls.__name__} has no harness_type")

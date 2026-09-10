@@ -1,7 +1,9 @@
 from envharness.core.envharness import EnvHarness
 from envharness.core.envharness import ActionableEnv
 from envharness.core.types import Action
+from envharness.core.registry import register_harness
 
+@register_harness("max_step")
 class MaxStepHarness(EnvHarness):
     def __init__(self, inner: ActionableEnv, max_steps: int):
         super().__init__(inner)

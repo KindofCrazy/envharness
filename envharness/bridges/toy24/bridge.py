@@ -2,6 +2,9 @@ from envharness.core.actionable_env import ActionableEnv
 from envharness.core.types import Action, Observation, EnvResponse, EvaluationResult
 from envharness.bridges.toy24.game import Toy24State
 from envharness.bridges.toy24.tools import Combine, Reset, Stop
+from envharness.core.registry import register_env
+
+@register_env("toy24")
 class Toy24Env(ActionableEnv):
 
     tool_registry = [Combine, Reset, Stop]

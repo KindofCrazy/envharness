@@ -1,6 +1,8 @@
 from envharness.core.envharness import EnvHarness
 from envharness.core.types import Action, Blocked, Observation, EnvResponse
+from envharness.core.registry import register_harness
 
+@register_harness("rules")
 class Rules(EnvHarness):
     
     rules_code: str = ""
@@ -57,7 +59,6 @@ class Rules(EnvHarness):
         from envharness.core.code_loader import (
             load_rules_subclass,
         )
-
 
         RulesCls = load_rules_subclass(code)
         instance = RulesCls(inner=inner)
