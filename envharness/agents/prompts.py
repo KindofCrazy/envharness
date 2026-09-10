@@ -1,7 +1,7 @@
 import json
 
 from envharness.core.types import Action, Trace
-from envharness.agents.designer import Designer, DesignerContext
+from envharness.agents.designer import DesignerContext
 from envharness.infra.llm import Message
 
 DESIGNER_SYSTEM_PROMPT = """
@@ -79,7 +79,7 @@ def render_designer_context(ctx: DesignerContext) ->str:
     parts.append(
         f"""TASK
 task_id: {ctx.task_id}
-description
+description: {ctx.task_description}
 """
     )
 
@@ -133,7 +133,7 @@ suggestion: {ctx.objective_signal.suggestion}
     return "\n\n".join(parts)
 
 
-def build_propose_message(
+def build_propose_messages(
     ctx: DesignerContext
 ) -> list[Message]:
     context = render_designer_context(ctx)
