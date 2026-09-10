@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, ValidationBatch, ValidationComparison, ValidationAttempt, DecideResult, Decision, BaselineSnapshot
+from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, ValidationBatch, ValidationComparison, ValidationAttempt, DecideResult, Decision, BaselineSnapshot, ObjectiveSignal
 
 @dataclass
 class DesignerContext:
@@ -8,6 +8,7 @@ class DesignerContext:
     task_id: int | str = 0
     task_description: str = ""
     baseline: BaselineSnapshot | None = None
+    objective_signal: ObjectiveSignal| None = None
 
 
 class Designer(ABC):

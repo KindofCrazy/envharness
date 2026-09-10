@@ -7,6 +7,7 @@ from envharness.agents.policy import Policy
 from envharness.agents.designer import Designer, DesignerContext
 from envharness.orchestration.budget import BudgetPolicy
 from envharness.orchestration.baseline import summarize_baseline
+from envharness.orchestration.objectives import MutationObjective
 
 @dataclass
 class OrchestratorAttempt:
@@ -65,8 +66,16 @@ def run_orchestrator_task(
     task_description: str = "",
     history_traces: list[Trace] | None = None,
     validation_rollouts: int = 5,
+    objective: MutationObjective | None = None,
     **reset_kwargs,
 ) -> OrchestratorResult:
+    history = list(history_traces or [])
+    objective_signal = (
+        objective.evaluate(history)
+        if objective is not None
+        else None
+    )
+
     baseline_batch = _evaluate_env_k(base_env, policy, validation_rollouts, *reset_args, trace_kind=TraceKind.BASELINE, task_id=task_id, **reset_kwargs)
     baseline = summarize_baseline(baseline_batch)
 
@@ -74,7 +83,8 @@ def run_orchestrator_task(
         history_traces=list(history_traces or []),
         task_id=task_id,
         task_description=task_description,
-        baseline=baseline
+        baseline=baseline,
+        objective_signal=objective_signal,
     )
     proposal = designer.propose(ctx)
 
@@ -93,6 +103,7 @@ def run_orchestrator_task(
             )
         )
         ctx.history_traces.extend(validation.traces)
+        ctx.objective_signal = objective.evaluate(validation.traces)
 
         if decision.decision == Decision.ACCEPT:
             for trace in attempts[-1].validation.traces:
@@ -100,7 +111,7 @@ def run_orchestrator_task(
             accepted_candidate = proposal.candidate
             break
 
-        if budget.should_stop(len(attempts), decision.decision, None):
+        if budget.should_stop(len(attempts), decision.decision, objective_signal):
             break
 
         if decision.decision == Decision.REFINE:
