@@ -17,27 +17,7 @@ class Designer(ABC):
         pass
 
     @abstractmethod
-    def diagnose(self, trace: Trace) -> Diagnosis:
-        ...
-
-    @abstractmethod
-    def write(self, diagnosis: Diagnosis) -> Candidate:
-        ...
-
-    @abstractmethod
     def propose(self, ctx: DesignerContext) -> DesignProposal:
-        ...
-
-    def propose_from_trace(self, trace: Trace) -> DesignProposal:
-        diagnosis = self.diagnose(trace)
-        candidate = self.write(diagnosis)
-        return DesignProposal(
-            diagnosis=diagnosis,
-            candidate=candidate,
-        )
-
-    @abstractmethod
-    def revise(self, attempt: ValidationAttempt) -> DesignProposal:
         ...
 
     @abstractmethod
@@ -61,17 +41,6 @@ class ScriptedDesigner(Designer):
         self.index = 0
         self.decision_index = 0
 
-    def diagnose(self, trace: Trace) -> Diagnosis:
-        return Diagnosis(summary="scripted diagnosis")
-
-    def write(self, diagnosis: Diagnosis) -> Candidate:
-        if self.index >= len(self.candidates):
-            raise RuntimeError("designer script exhausted")
-
-        candidate = self.candidates[self.index]
-        self.index += 1
-        return candidate
-
     def propose(
         self,
         ctx: DesignerContext,
@@ -85,15 +54,6 @@ class ScriptedDesigner(Designer):
         return DesignProposal(
             diagnosis=diagnosis,
             candidate=candidate,
-        )
-
-    def revise(self, attempt: ValidationAttempt) -> DesignProposal:
-        diagnosis = Diagnosis(summary="Scripted Designer")
-        candidate = self.write(diagnosis)
-
-        return DesignProposal(
-            diagnosis=diagnosis,
-            candidate=candidate
         )
 
     def decide(self, candidate: Candidate, validation: ValidationBatch, ctx: DesignerContext) -> DecideResult:
