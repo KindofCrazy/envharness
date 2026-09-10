@@ -84,7 +84,7 @@ Use only a tool listed above.
             self.history.append(
                 Message(
                     role="system",
-                    content=self._system_prompt
+                    content=self._system_prompt()
                 )
             )
 
@@ -99,6 +99,13 @@ Use only a tool listed above.
             messages=list(self.history),
             temperature=self.temperature,
             max_tokens=self.max_tokens
+        )
+
+        self.history.append(
+            Message(
+                role="assistant",
+                content=response.content
+            )
         )
 
         return parse_action_response(response.content)
