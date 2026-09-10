@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from envharness.core.types import DesignProposal, ValidationBatch, DecideResult, BaselineSnapshot, Candidate, Trace, Decision
-from envharness.orchestration.design_loop import run_episode
+from envharness.orchestration.runner import run_episode
 from envharness.orchestration.builder import build_env_stack
 from envharness.core.actionable_env import ActionableEnv
 from envharness.agents.policy import Policy
@@ -34,8 +34,9 @@ def _evaluate_env_k(env, policy, k, *reset_args, **reset_kwargs) -> ValidationBa
 
 def _evaluate_candidate_k(base_env, candidate, policy, k, *reset_args, **reset_kwargs) -> ValidationBatch:
     candidate_env = build_env_stack(base_env, candidate)
+    return _evaluate_env_k(candidate_env, policy, k, *reset_args, **reset_kwargs)
 
-def run_orchestratoe_task(
+def run_orchestrator_task(
     base_env: ActionableEnv,
     policy: Policy,
     designer: Designer,
@@ -61,7 +62,7 @@ def run_orchestratoe_task(
     attempts = []
     accepted_candidate = None
     while True:
-        validation = _evaluate_candidate_k(base_env, proposal.candidate, policy, *reset_args, **reset_kwargs)
+        validation = _evaluate_candidate_k(base_env, proposal.candidate, policy, validation_rollouts, *reset_args, **reset_kwargs)
         decision = designer.decide(proposal.candidate, validation, ctx)
 
         attempts.append(
@@ -77,7 +78,7 @@ def run_orchestratoe_task(
             accepted_candidate = proposal.candidate
             break
 
-        if budget.should_stop(len(attempts), decision, None):
+        if budget.should_stop(len(attempts), decision.decision, None):
             break
 
         if decision.decision == Decision.REFINE:
