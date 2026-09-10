@@ -95,7 +95,7 @@ def run_orchestrator_task(
         ctx.history_traces.extend(validation.traces)
 
         if decision.decision == Decision.ACCEPT:
-            for trace in validation.traces:
+            for trace in attempts[-1].validation.traces:
                 trace.kind = TraceKind.ACCEPTED
             accepted_candidate = proposal.candidate
             break
