@@ -1,6 +1,5 @@
 from envharness.core.envharness import EnvHarness
 from envharness.core.types import Action, Blocked, Observation, EnvResponse
-from envharness.core.code_loader import load_rules_subclass
 
 class Rules(EnvHarness):
     
@@ -54,6 +53,11 @@ class Rules(EnvHarness):
         code = state.get("rules_code", "").strip()
         if not code:
             return cls(inner=inner)
+
+        from envharness.core.code_loader import (
+            load_rules_subclass,
+        )
+
 
         RulesCls = load_rules_subclass(code)
         instance = RulesCls(inner=inner)
