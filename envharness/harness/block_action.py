@@ -20,3 +20,13 @@ class BlockActionHarness(EnvHarness):
                     "reason": f"Blocked Action {self.block_action}"
                 }
             )
+
+    def save_state(self):
+        return {
+            "block_action": self.block_action
+        }
+
+    @classmethod
+    def from_state(cls, state, inner = None) -> "BlockActionHarness":
+        return cls(inner=inner, block_action=state["block_action"])
+    

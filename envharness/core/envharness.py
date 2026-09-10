@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from envharness.core.actionable_env import ActionableEnv
 from envharness.core.types import Action, Observation, EnvResponse, EvaluationResult
 
@@ -19,3 +20,12 @@ class EnvHarness(ActionableEnv):
 
     def get_env_state(self):
         return self.inner.get_env_state()
+
+    @abstractmethod
+    def save_state(self) -> dict:
+        ...
+
+    @classmethod
+    @abstractmethod
+    def from_state(cls, state: dict, inner: ActionableEnv | None = None) -> "EnvHarness":
+        ...

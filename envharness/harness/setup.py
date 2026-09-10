@@ -16,3 +16,27 @@ class Setup(EnvHarness):
 
         return self.observe()
 
+    def save_state(self) -> dict:
+        return {
+            "actions": [
+                {
+                    "name": action.name,
+                    "kwargs": dict(action.kwargs)
+                } for action in self.actions
+            ]
+        }
+
+    @classmethod
+    def from_state(cls, state, inner = None) -> "Setup":
+        actions = [
+            Action(
+                name=item["name"],
+                kwargs=dict(item["kwargs"]),
+            )
+            for item in state["actions"]
+        ]
+
+        return cls(
+            inner=inner,
+            actions=actions,
+        )

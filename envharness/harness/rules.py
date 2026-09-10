@@ -1,7 +1,11 @@
 from envharness.core.envharness import EnvHarness
 from envharness.core.types import Action, Blocked, Observation, EnvResponse
+from envharness.core.code_loader import load_rules_subclass
 
 class Rules(EnvHarness):
+    
+    rules_code: str = ""
+
     def __init__(self, inner):
         super().__init__(inner)
 
@@ -41,4 +45,17 @@ class Rules(EnvHarness):
     def reset(self, *args, **kwargs) -> Observation:
         observation = super().reset(*args, **kwargs)
         return self.filter_observation(observation)
-    
+
+    def save_state(self) -> dict:
+        return {"rules_code": self.rules_code}
+
+    @classmethod
+    def from_state(cls, state, inner = None) -> "Rules":
+        code = state.get("rules_code", "").strip()
+        if not code:
+            return cls(inner=inner)
+
+        RulesCls = load_rules_subclass(code)
+        instance = RulesCls(inner=inner)
+        instance.rules_code = code
+        return instance

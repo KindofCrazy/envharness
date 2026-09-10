@@ -19,3 +19,16 @@ class MaxStepHarness(EnvHarness):
         if not result.terminated and self.current_steps >= self.max_steps:
             result.truncated = True
         return result
+
+    def save_state(self):
+        return {
+            "max_steps": self.max_steps,
+            "current_steps": self.current_steps
+        }
+
+    @classmethod
+    def from_state(cls, state: dict, inner = None) -> "MaxStepHarness":
+        harness = cls(inner=inner, max_steps=state["max_steps"])
+        harness.current_steps = state["current_steps"]
+
+        return harness

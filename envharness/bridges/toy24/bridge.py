@@ -105,7 +105,7 @@ class Toy24Env(ActionableEnv):
         env.state = Toy24State(
             target=state["target"],
             initial_numbers=list(state["initial_numbers"]),
-            current_numbers=state["current_numbers"],
+            current_numbers=list(state["current_numbers"]),
             history=list(state["history"]),
             stopped=state["stopped"],
             success=state["success"],

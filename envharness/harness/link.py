@@ -67,3 +67,14 @@ class Link(EnvHarness):
         if self.stage == "A":
             return self.inner.observe()
         return self.env_b.observe()
+
+    def save_state(self):
+        raise NotImplementedError(
+            "Link persistence is not supported"
+        )
+
+    @classmethod
+    def from_state(cls, state, inner = None):
+        raise NotImplementedError(
+            "Link persistence is not supported"
+        )

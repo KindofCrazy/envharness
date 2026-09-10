@@ -14,6 +14,8 @@ def build_env_stack(
 
     if candidate.rules_code.strip():
         RulesCls = load_rules_subclass(candidate.rules_code)
-        env = RulesCls(inner=env)
+        rules = RulesCls(inner=env)
+        rules.rules_code = candidate.rules_code
+        env = rules
 
     return env
