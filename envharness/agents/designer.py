@@ -5,7 +5,7 @@ from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, V
 @dataclass
 class DesignerContext:
     history_traces: list[Trace] = field(default_factory=list)
-    tool_schema: list[dict] = field(default_factory=list)
+    tool_schemas: list[dict] = field(default_factory=list)
     env_state_schema: str = ""
 
     task_id: int | str = 0

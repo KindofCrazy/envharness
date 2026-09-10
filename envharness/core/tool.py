@@ -2,14 +2,14 @@ import inspect
 from abc import ABC, abstractmethod
 from typing import Any, get_type_hints
 
-def _type_to_schema(self, typ):
+def _type_to_schema(typ):
     if typ is int:
-        return {"type": "interger"}
+        return {"type": "integer"}
     if typ is float:
         return {"type": "number"}
     if typ is bool:
         return {"type": "boolean"}
-    if type is str:
+    if typ is str:
         return {"type": "string"}
     return {"type": "string"}
 
@@ -48,7 +48,7 @@ class Tool(ABC):
                 "name": cls.name or cls.__name__,
                 "description": cls.description,
                 "parameters": {
-                    "type": object,
+                    "type": "object",
                     "properties": properties,
                     "required": required
                 }
