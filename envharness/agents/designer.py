@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, ValidationBatch, ValidationComparison, ValidationAttempt
+from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, ValidationBatch, ValidationComparison, ValidationAttempt, DecideResult, Decision
 
 class Designer(ABC):
 
@@ -26,15 +26,26 @@ class Designer(ABC):
     def revise(self, attempt: ValidationAttempt) -> DesignProposal:
         ...
 
+    @abstractmethod
+    def decide(self, candidate: Candidate, validation: ValidationBatch) -> DecideResult:
+        ...
+
+    @abstractmethod
+    def refine(self, candidate: Candidate, validation: ValidationBatch) -> DesignProposal:
+        ...
+
 
 class ScriptedDesigner(Designer):
 
-    def __init__(self, candidates: list[Candidate]):
+    def __init__(self, candidates: list[Candidate], decisions: list[DecideResult] | None = None):
         self.candidates = list(candidates)
+        self.decisions = list(decisions or [])
         self.index = 0
+        self.decision_index = 0
 
     def reset(self):
         self.index = 0
+        self.decision_index = 0
 
     def diagnose(self, trace: Trace) -> Diagnosis:
         return Diagnosis(summary="scripted diagnosis")
@@ -48,6 +59,23 @@ class ScriptedDesigner(Designer):
         return candidate
 
     def revise(self, attempt: ValidationAttempt) -> DesignProposal:
+        diagnosis = Diagnosis(summary="Scripted Designer")
+        candidate = self.write(diagnosis)
+
+        return DesignProposal(
+            diagnosis=diagnosis,
+            candidate=candidate
+        )
+
+    def decide(self, candidate: Candidate, validation: ValidationBatch) -> DecideResult:
+        if self.decision_index >= len(self.decisions):
+            raise RuntimeError("designer devision script exhausted")
+
+        result = self.decisions[self.decision_index]
+        self.decision_index += 1
+        return result
+
+    def refine(self, candidate: Candidate, validation: ValidationBatch) -> DesignProposal:
         diagnosis = Diagnosis(summary="Scripted Designer")
         candidate = self.write(diagnosis)
 
