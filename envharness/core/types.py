@@ -37,10 +37,22 @@ class Step:
     response: EnvResponse
 
 @dataclass
+class TraceKind(str, Enum):
+    BASELINE = "baseline"
+    EXPLORATION = "exploration"
+    ACCEPTED = "accepted"
+
+@dataclass
 class Trace:
     initial_observation: Observation
     steps: list[Step] = field(default_factory=list)
     success: bool = False
+
+    kind: TraceKind = TraceKind.EXPLORATION
+
+    task_id: int | str | None = None
+    attempt_idx = int | None = None
+    rollout_idx = int | None = None
 
 @dataclass
 class Candidate:

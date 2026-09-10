@@ -1,11 +1,15 @@
 from envharness.core.actionable_env import ActionableEnv
 from envharness.agents.policy import Policy
-from envharness.core.types import Step, Trace
+from envharness.core.types import Step, Trace, TraceKind
 
 def run_episode(
     env: ActionableEnv,
     policy: Policy,
     *reset_args,
+    trace_kind: TraceKind = TraceKind.EXPLORATION,
+    task_id: int | str | None = None,
+    attempt_idx: int | None = None,
+    rollout_idx: int | None = None,
     **reset_kwargs,
 ) -> Trace:
     policy.reset()
@@ -13,6 +17,10 @@ def run_episode(
 
     trace = Trace(
         initial_observation=initial_observation,
+        kind = trace_kind,
+        task_id=task_id,
+        attempt_idx=attempt_idx,
+        rollout_idx=rollout_idx
     )
 
     while True:

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from envharness.core.types import DesignProposal, ValidationBatch, DecideResult, BaselineSnapshot, Candidate, Trace, Decision
+from envharness.core.types import DesignProposal, ValidationBatch, DecideResult, BaselineSnapshot, Candidate, Trace, Decision, TraceKind
 from envharness.orchestration.runner import run_episode
 from envharness.orchestration.builder import build_env_stack
 from envharness.core.actionable_env import ActionableEnv
@@ -20,21 +20,40 @@ class OrchestratorResult:
     attempts: list[OrchestratorAttempt] = field(default_factory=list)
     accepted_candidate: Candidate | None = None
 
-def _evaluate_env_k(env, policy, k, *reset_args, **reset_kwargs) -> ValidationBatch:
+def _evaluate_env_k(
+    env,
+    policy, 
+    k, 
+    *reset_args, 
+    trace_kind: TraceKind = TraceKind.EXPLORATION,
+    task_id: int | str | None = None,
+    attempt_idx: int | None = None,
+    **reset_kwargs
+) -> ValidationBatch:
     if k <= 0:
         raise ValueError("validation_rollouts must be positive")
 
     traces = []
-    for _ in range(k):
-        traces.append(run_episode(env, policy, *reset_args, **reset_kwargs))
+    for rollout_idx in range(k):
+        traces.append(run_episode(env, policy, *reset_args, trace_kind=trace_kind, task_id=task_id, attempt_idx=attempt_idx, rollout_idx=rollout_idx, **reset_kwargs))
 
     return ValidationBatch(
         traces=list(traces)
     )
 
-def _evaluate_candidate_k(base_env, candidate, policy, k, *reset_args, **reset_kwargs) -> ValidationBatch:
+def _evaluate_candidate_k(
+    base_env, 
+    candidate, 
+    policy, 
+    k, 
+    *reset_args, 
+    trace_kind: TraceKind = TraceKind.EXPLORATION,
+    task_id: int | str | None = None,
+    attempt_idx: int | None = None,
+    **reset_kwargs
+) -> ValidationBatch:
     candidate_env = build_env_stack(base_env, candidate)
-    return _evaluate_env_k(candidate_env, policy, k, *reset_args, **reset_kwargs)
+    return _evaluate_env_k(candidate_env, policy, k, *reset_args, trace_kind=trace_kind, task_id=task_id, attempt_idx=attempt_idx, **reset_kwargs)
 
 def run_orchestrator_task(
     base_env: ActionableEnv,
@@ -48,7 +67,7 @@ def run_orchestrator_task(
     validation_rollouts: int = 5,
     **reset_kwargs,
 ) -> OrchestratorResult:
-    baseline_batch = _evaluate_env_k(base_env, policy, validation_rollouts, *reset_args, **reset_kwargs)
+    baseline_batch = _evaluate_env_k(base_env, policy, validation_rollouts, *reset_args, trace_kind=TraceKind.BASELINE, task_id=task_id, **reset_kwargs)
     baseline = summarize_baseline(baseline_batch)
 
     ctx = DesignerContext(
@@ -62,7 +81,8 @@ def run_orchestrator_task(
     attempts = []
     accepted_candidate = None
     while True:
-        validation = _evaluate_candidate_k(base_env, proposal.candidate, policy, validation_rollouts, *reset_args, **reset_kwargs)
+        attempt_idx = len(attempts)
+        validation = _evaluate_candidate_k(base_env, proposal.candidate, policy, validation_rollouts, *reset_args, trace_kind=TraceKind.EXPLORATION, task_id=task_id, attempt_idx=attempt_idx, **reset_kwargs)
         decision = designer.decide(proposal.candidate, validation, ctx)
 
         attempts.append(
@@ -75,6 +95,8 @@ def run_orchestrator_task(
         ctx.history_traces.extend(validation.traces)
 
         if decision.decision == Decision.ACCEPT:
+            for trace in validation.traces:
+                trace.kind = TraceKind.ACCEPTED
             accepted_candidate = proposal.candidate
             break
 
