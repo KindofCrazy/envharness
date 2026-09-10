@@ -1,5 +1,14 @@
 from abc import ABC, abstractmethod
-from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, ValidationBatch, ValidationComparison, ValidationAttempt, DecideResult, Decision
+from dataclasses import dataclass, field
+from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, ValidationBatch, ValidationComparison, ValidationAttempt, DecideResult, Decision, BaselineSnapshot
+
+@dataclass
+class DesignerContext:
+    history_traces: list[Trace] = field(default_factory=list)
+    task_id: int | str = 0
+    task_description: str = ""
+    basline = BaselineSnapshot | None = None
+
 
 class Designer(ABC):
 
@@ -27,11 +36,11 @@ class Designer(ABC):
         ...
 
     @abstractmethod
-    def decide(self, candidate: Candidate, validation: ValidationBatch) -> DecideResult:
+    def decide(self, candidate: Candidate, validation: ValidationBatch, ctx: DesignerContext) -> DecideResult:
         ...
 
     @abstractmethod
-    def refine(self, candidate: Candidate, validation: ValidationBatch) -> DesignProposal:
+    def refine(self, candidate: Candidate, validation: ValidationBatch, ctx: DesignerContext) -> DesignProposal:
         ...
 
 
@@ -67,15 +76,15 @@ class ScriptedDesigner(Designer):
             candidate=candidate
         )
 
-    def decide(self, candidate: Candidate, validation: ValidationBatch) -> DecideResult:
+    def decide(self, candidate: Candidate, validation: ValidationBatch, ctx: DesignerContext) -> DecideResult:
         if self.decision_index >= len(self.decisions):
-            raise RuntimeError("designer devision script exhausted")
+            raise RuntimeError("designer decision script exhausted")
 
         result = self.decisions[self.decision_index]
         self.decision_index += 1
         return result
 
-    def refine(self, candidate: Candidate, validation: ValidationBatch) -> DesignProposal:
+    def refine(self, candidate: Candidate, validation: ValidationBatch, ctx: DesignerContext) -> DesignProposal:
         diagnosis = Diagnosis(summary="Scripted Designer")
         candidate = self.write(diagnosis)
 
@@ -83,4 +92,3 @@ class ScriptedDesigner(Designer):
             diagnosis=diagnosis,
             candidate=candidate
         )
-

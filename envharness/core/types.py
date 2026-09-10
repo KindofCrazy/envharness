@@ -119,3 +119,17 @@ class DecideResult:
     decision: Decision
     failure_analysis: FailureAnalysis | None = None
     rationale: str = ""
+
+@dataclass
+class BaselineRolloutSummary:
+    success: bool
+    steps: int
+
+@dataclass
+class BaselineSnapshot:
+    n: int
+    n_success: int
+    success_rate = float
+    avg_success_steps: float | None = None
+    per_rollout: list[BaselineRolloutSummary] = field(default_factory=list)
+
