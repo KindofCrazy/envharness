@@ -1,3 +1,7 @@
+import json
+import urllib.request
+import urllib.error
+
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
@@ -43,6 +47,105 @@ class ScriptedClient(LLMClient):
 
         content = self.responses[self.index]
         self.index += 1
+
+        return ChatResponse(
+            content=content
+        )
+
+def _message_to_dict(self, message) -> dict:
+    return {
+        "role": message.role,
+        "content": message.content
+    }
+
+class OpenAICompatibleClient(LLMClient):
+
+    def __init__(self, model_id: str, base_url: str, api_key: str | None = None, timeout: float = 60.0):
+        self.model_idx = model_id
+        self.base_url = base_url
+        self.api_key = api_key
+        self.timeout = timeout
+
+    def chat(
+        self,
+        messages: list[Message],
+        *,
+        temperature: float = 0.7,
+        max_tokens: int | None = None
+    ) -> ChatResponse:
+        payload = {
+            "model": self.model_id,
+            "messages": [
+                _message_to_dict(message) for message in messages
+            ],
+            "temperature": temperature
+        }
+
+        if max_tokens is not None:
+            payload["max_tokens"] = max_tokens
+
+        headers = {
+            "Content-Type": "application/json",
+        }
+
+        if self.api_key:
+            headers["Authorization"] = (
+                f"Bearer {self.api_key}"
+            )
+
+        request = urllib.request.Request(
+            url=(
+                self.base_url + "/chat/completions"
+            ),
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers,
+            method="POST"
+        )
+
+        try:
+            with urllib.request.urlopen(
+                request,
+                timeout=self.timeout,
+            ) as response:
+                body = response.read().decode(
+                    "utf-8"
+                )
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode(
+                "utf-8",
+                errors="replace",
+            )
+
+            raise RuntimeError(
+                f"LLM HTTP {exc.code}: {detail}"
+            ) from exc
+        except urllib.error.URLError as exc:
+            raise RuntimeError(
+                f"LLM connection failed: {exc}"
+            ) from exc
+
+        try:
+            data = json.loads(body)
+
+            content = (
+                data["choices"][0]
+                ["message"]["content"]
+            )
+        except (
+            json.JSONDecodeError,
+            KeyError,
+            IndexError,
+            TypeError,
+        ) as exc:
+            raise RuntimeError(
+                "invalid chat completion response"
+            ) from exc
+
+        if not isinstance(content, str):
+            raise RuntimeError(
+                "chat completion content "
+                "must be a string"
+            )
 
         return ChatResponse(
             content=content
