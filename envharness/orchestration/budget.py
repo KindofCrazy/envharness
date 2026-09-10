@@ -4,7 +4,7 @@ from envharness.core.types import Decision, ObjectiveSignal
 class BudgetPolicy(ABC):
 
     @abstractmethod
-    def should_stop(self, attempts: int, last_decision: Decision, objective_signal: ObjectiveSignal) -> bool:
+    def should_stop(self, attempts: int, last_decision: Decision, objective_signal: ObjectiveSignal | None) -> bool:
         ...
 
 class FixedBudget(BudgetPolicy):
@@ -19,7 +19,7 @@ class FixedBudget(BudgetPolicy):
 
 class CappedAdaptive(BudgetPolicy):
 
-    def __init__(self, max_attempts: int) :
+    def __init__(self, max_attempts: int = 8) :
         if max_attempts < 1:
             raise ValueError("max attempts must be >= 1")
         self.max_attempts = max_attempts
@@ -29,7 +29,7 @@ class CappedAdaptive(BudgetPolicy):
             return True
         return attempts >= self.max_attempts
 
-class ObjectDriven(BudgetPolicy):
+class ObjectiveDriven(BudgetPolicy):
 
     def __init__(self, score_threshold: float = 0.8, max_attempts: int = 20):
         if max_attempts < 1:
