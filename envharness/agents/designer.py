@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, ValidationBatch, ValidationComparison, ValidationAttempt, DecideResult, Decision, BaselineSnapshot, ObjectiveSignal
+from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, ValidationBatch, DecideResult, BaselineSnapshot, ObjectiveSignal
 
 @dataclass
 class DesignerContext:
@@ -37,6 +37,13 @@ class ScriptedDesigner(Designer):
         self.index = 0
         self.decision_index = 0
 
+    def _next_candidate(self) -> Candidate:
+        if self.index >= len(self.candidates):
+            raise RuntimeError("designer candidate script exhausted")
+        candidate = self.candidates[self.index]
+        self.index += 1
+        return candidate
+
     def reset(self):
         self.index = 0
         self.decision_index = 0
@@ -49,11 +56,9 @@ class ScriptedDesigner(Designer):
             summary="scripted proposal"
         )
 
-        candidate = self.write(diagnosis)
-
         return DesignProposal(
             diagnosis=diagnosis,
-            candidate=candidate,
+            candidate=self._next_candidate(),
         )
 
     def decide(self, candidate: Candidate, validation: ValidationBatch, ctx: DesignerContext) -> DecideResult:
@@ -66,9 +71,8 @@ class ScriptedDesigner(Designer):
 
     def refine(self, candidate: Candidate, validation: ValidationBatch, ctx: DesignerContext) -> DesignProposal:
         diagnosis = Diagnosis(summary="Scripted Designer")
-        candidate = self.write(diagnosis)
 
         return DesignProposal(
             diagnosis=diagnosis,
-            candidate=candidate
+            candidate=self._next_candidate(),
         )

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from envharness.core.types import ValidationComparison, ObjectiveResult, ObjectiveSignal, Trace, TraceKind
+from envharness.core.types import ObjectiveSignal, Trace, TraceKind
 
 class MutationObjective(ABC):
 
