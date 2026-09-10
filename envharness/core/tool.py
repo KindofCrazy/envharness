@@ -1,8 +1,34 @@
 import inspect
 from abc import ABC, abstractmethod
-from typing import Any, get_type_hints
+from typing import Any, Literal, get_args, get_origin, get_type_hints
 
 def _type_to_schema(typ):
+    origin = get_origin(typ)
+
+    if origin is Literal:
+        values = list(get_args(typ))
+
+        if not values:
+            return {"type": "string"}
+
+        first = values[0]
+
+        if isinstance(first, str):
+            schema_type = "string"
+        elif isinstance(first, bool):
+            schema_type = "boolean"
+        elif isinstance(first, int):
+            schema_type = "integer"
+        elif isinstance(first, float):
+            schema_type = "number"
+        else:
+            schema_type = "string"
+
+        return {
+            "type": schema_type,
+            "enum": values,
+        }
+
     if typ is int:
         return {"type": "integer"}
     if typ is float:

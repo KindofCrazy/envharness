@@ -128,4 +128,9 @@ class Toy24Env(ActionableEnv):
             "  stopped: bool\n"
             "  success: bool\n"
             "  step_count: int"
+            "\n"
+            "For combine actions, i and j index the current_numbers "
+            "list at the moment the action executes. "
+            "A successful combine removes both selected numbers "
+            "and appends the result, so indices change after each combine."
         )

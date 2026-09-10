@@ -4,6 +4,82 @@ from envharness.core.types import Action, Trace, Candidate, ValidationBatch
 from envharness.agents.designer import DesignerContext
 from envharness.infra.llm import Message
 
+RULES_RUNTIME_CONTRACT = """
+RULES RUNTIME CONTRACT
+
+The following Python names are already available inside rules_code.
+Do not import them:
+
+Rules
+Action
+Blocked
+Observation
+EnvResponse
+
+Their relevant interfaces are:
+
+Action:
+    action.name: str
+    action.kwargs: dict
+
+Blocked:
+    Blocked(reason="...")
+
+Observation:
+    observation.text: str
+    observation.data: dict
+
+EnvResponse:
+    response.observation: Observation
+    response.reward: float
+    response.terminated: bool
+    response.truncated: bool
+    response.info: dict
+
+Rules hooks:
+
+1. filter_action(action, env_state) -> Action | Blocked
+
+   Called BEFORE the underlying environment step.
+   env_state is the PRE-action state.
+
+   Return:
+   - an Action to execute, or
+   - Blocked(reason="...") to block it.
+
+   Never return True or False.
+
+2. modify_transition(action, response, env_state) -> EnvResponse
+
+   Called AFTER the underlying environment step.
+   env_state is the fresh POST-action state.
+
+   Return an EnvResponse.
+
+3. filter_observation(observation, env_state) -> Observation
+
+   Called on observations using the current environment state.
+
+   Return an Observation.
+
+Use attribute access, not dictionary indexing:
+    action.name
+    action.kwargs
+    observation.text
+    observation.data
+
+Do NOT write:
+    action["name"]
+    observation["text"]
+
+in_env_actions are executed sequentially before the policy starts.
+Each later action sees the environment state produced by earlier actions.
+
+Use only tool names and kwargs allowed by the TOOLS schema.
+
+Do not change the environment's underlying success verifier.
+""".strip()
+
 DESIGNER_SYSTEM_PROMPT = """
 You are an environment designer.
 
@@ -31,6 +107,8 @@ The env_state argument has exactly the structure described
 in the environment-state schema.
 
 Do not invent tool names or env_state fields.
+
+{RULES_RUNTIME_CONTRACT}
 """
 
 def render_action(action: Action) -> str:

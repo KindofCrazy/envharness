@@ -1,3 +1,4 @@
+from typing import Literal
 from envharness.core.tool import Tool
 from envharness.bridges.toy24.game import combine, reset_numbers, stop
 
@@ -6,7 +7,7 @@ class Combine(Tool):
     description = "Combine two numbers using an arithmetic operation."
 
     @classmethod
-    def invoke(cls, env_state, i: int, j: int, op: str):
+    def invoke(cls, env_state, i: int, j: int, op: Literal["add", "sub", "mul", "div"]):
         return combine(env_state, i, j, op)
 
 class Reset(Tool):
