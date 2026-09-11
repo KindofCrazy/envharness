@@ -5,7 +5,7 @@ from envharness.reasoning_bank.induce import SkillDraft
 
 def skill_embedding_text(skill: SkillDraft,) -> str:
     return (
-        f"{skill.title}"
+        f"{skill.title}: "
         f"{skill.description}"
     )
 
