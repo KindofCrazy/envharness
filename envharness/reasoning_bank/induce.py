@@ -137,17 +137,42 @@ def parse_skill_response(
 
     skill_drafts = []
     for skill in skills:
-        skill_draft = SkillDraft(
-            title=skill["title"],
-            description=skill["description"],
-            content=skill["content"],
+        if not isinstance(skill, dict):
+            raise ValueError(
+                "each skill must be an object"
+            )
+
+        title = skill.get("title")
+        description = skill.get("description")
+        content = skill.get("content")
+
+        if not isinstance(title, str):
+            raise ValueError(
+                "skill title must be a string"
+            )
+
+        if not isinstance(description, str):
+            raise ValueError(
+                "skill description must be a string"
+            )
+
+        if not isinstance(content, str):
+            raise ValueError(
+                "skill content must be a string"
+            )
+
+        skill_drafts.append(
+            SkillDraft(
+                title=title,
+                description=description,
+                content=content,
+            )
         )
 
-        skill_drafts.append(skill_draft)
+    return skill_drafts[:max_items]
 
-    return skill_drafts[:-max_items]
 
-class LLMSKillInducer:
+class LLMSkillInducer:
 
     def __init__(self, client: LLMClient, *, max_items: int = 3, temperature: float = 0.0):
         self.client = client
