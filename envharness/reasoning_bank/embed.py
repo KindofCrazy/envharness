@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from envharness.reasoning_bank.induce import SkillDraft
 
 def cosine(a: list[float], b: list[float]) -> float:
     if len(a) != len(b):
