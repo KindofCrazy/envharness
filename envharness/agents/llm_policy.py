@@ -3,6 +3,7 @@ import json
 from envharness.agents.policy import Policy
 from envharness.core.types import Action, Observation
 from envharness.infra.llm import LLMClient, Message
+from envharness.reasoning_bank.retrieve import MemoryItem, MemoryRetriever, render_memories
 
 def parse_action_response(
     content: str,
@@ -46,6 +47,7 @@ class LLMPolicy(Policy):
         task_prompt: str = "",
         temperature: float = 0.4,
         max_tokens: int | None = None,
+        memory_retriever: MemoryRetriever | None = None,
     ):
         self.client = client
         self.tool_schemas = list(tool_schemas)
@@ -53,16 +55,35 @@ class LLMPolicy(Policy):
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.history: list[Message] = []
+        self.memory_retriever = memory_retriever
+        self.memories: list [MemoryItem] = []
 
     def reset(self):
         self.history = []
+        self.memories = []
 
     def _system_prompt(self) -> str:
+        memory_text = render_memories(self.memories)
+
+        if memory_text:
+            memory_section = f"""
+RELEVANT SKILLS FROM PAST EXPERIENCE:
+
+{memory_text}
+
+Use these as guidance when helpful.
+They are not mandatory instructions and may not perfectly match
+the current task.
+
+"""
+
         return f"""
 You are an agent interacting with an environment.
 
 TASK:
 {self.task_prompt}
+
+{memory_section}
 
 AVAILABLE TOOLS:
 {json.dumps(self.tool_schemas, indent=2)}
@@ -79,8 +100,21 @@ Return JSON only:
 Use only a tool listed above.
 """.strip()
 
+    def _memory_query(self, observation: Observation) -> str:
+        return (
+            f"{self.task_prompt}\n\n"
+            f"{observation.text}"
+        ).strip()
+
     def act(self, observation: Observation) -> Action:
         if not self.history:
+            if self.memory_retriever is not None:
+                self.memories = (
+                    self.memory_retriever.retrieve(
+                        self._memory_query(observation)
+                    )
+                )
+
             self.history.append(
                 Message(
                     role="system",
