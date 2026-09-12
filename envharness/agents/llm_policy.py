@@ -64,7 +64,7 @@ class LLMPolicy(Policy):
 
     def _system_prompt(self) -> str:
         memory_text = render_memories(self.memories)
-
+        memory_section = " "
         if memory_text:
             memory_section = f"""
 RELEVANT SKILLS FROM PAST EXPERIENCE:
