@@ -3,7 +3,8 @@ import json
 from envharness.agents.policy import Policy
 from envharness.core.types import Action, Observation
 from envharness.infra.llm import LLMClient, Message
-from envharness.reasoning_bank.retrieve import MemoryItem, MemoryRetriever, render_memories
+from envharness.reasoning_bank.bank import MemoryItem
+from envharness.reasoning_bank.retrieve import MemoryRetriever, render_memories
 
 def parse_action_response(
     content: str,
@@ -64,7 +65,7 @@ class LLMPolicy(Policy):
 
     def _system_prompt(self) -> str:
         memory_text = render_memories(self.memories)
-        memory_section = " "
+        memory_section = ""
         if memory_text:
             memory_section = f"""
 RELEVANT SKILLS FROM PAST EXPERIENCE:
