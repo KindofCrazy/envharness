@@ -125,4 +125,4 @@ class BaselineSnapshot:
 @dataclass
 class EnvResetResponse:
     observation: Observation
-    info: dict[str: Any] = field(default_factory=dict)
+    info: dict[str, Any] = field(default_factory=dict)

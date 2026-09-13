@@ -1,12 +1,12 @@
 from abc import abstractmethod
 from envharness.core.actionable_env import ActionableEnv
-from envharness.core.types import Action, Observation, EnvResponse, EvaluationResult
+from envharness.core.types import Action, Observation, EnvResponse, EvaluationResult, EnvResetResponse
 
 class EnvHarness(ActionableEnv):
     def __init__(self, inner: ActionableEnv):
         self.inner = inner
 
-    def reset(self, *args, **kwargs) -> Observation:
+    def reset(self, *args, **kwargs) -> EnvResetResponse:
         return self.inner.reset(*args, **kwargs)
 
     def step(self, action: Action) -> EnvResponse:

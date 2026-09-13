@@ -80,3 +80,9 @@ class Link(EnvHarness):
         raise NotImplementedError(
             "Link persistence is not supported"
         )
+
+    def close(self):
+        try:
+            self.env_a.close()
+        finally:
+            self.env_b.close()
