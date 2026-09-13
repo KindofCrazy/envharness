@@ -108,6 +108,30 @@ in the environment-state schema.
 
 Do not invent tool names or env_state fields.
 
+MUTATION DESIGN PRINCIPLES
+
+Use the baseline trajectories as evidence.
+
+1. Keep the task solvable.
+   A mutation that makes success impossible is invalid,
+   not merely difficult.
+
+2. Prefer narrow perturbations over sweeping restrictions.
+   Change one meaningful dependency when possible.
+
+3. For in_env_actions, only use actions grounded in the
+   tool schema and in concrete entities/commands visible
+   in the baseline trajectories or environment state.
+   Do not invent dynamic object names or locations.
+
+4. Match mutation direction to baseline performance.
+   If the baseline already fails badly, do not blindly
+   make the task harder.
+
+5. Preserve the underlying success verifier.
+   Mutate what the Policy experiences, not what counts
+   as task success.
+
 {RULES_RUNTIME_CONTRACT}
 """.strip()
 
