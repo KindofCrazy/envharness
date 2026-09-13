@@ -8,6 +8,8 @@ from envharness.orchestration.orchestrator import (
     TaskSpec,
     run_orchestrator,
 )
+from envharness.orchestration.runner import InProcessRunner
+from envharness.orchestration.specs import EnvSpec, PolicySpec
 from envharness.orchestration.storage import TraceStore
 
 store = TraceStore(
@@ -34,21 +36,31 @@ designer_client = OpenAICompatibleClient(
     thinking=False
 )
 
-env = Toy24Env()
+env_spec = EnvSpec(
+    import_path=(
+        "envharness.bridges.toy24.bridge:"
+        "Toy24Env"
+    ),
+)
 
-policy = LLMPolicy(
-    client=policy_client,
-    tool_schemas=env.tool_schemas(),
+policy_spec = PolicySpec(
+    client_factory=(
+        "envharness.infra.llm:"
+        "OpenAICompatibleClient"
+    ),
+    client_kwargs={
+        "model_id": "deepseek-v4-flash",
+        "base_url": "https://api.deepseek.com",
+        "api_key": api_key,
+        "thinking": False,
+    },
     task_prompt=(
-        "Solve the Toy24 task. "
-        "Use combine to combine two current numbers. "
-        "The op argument must be one of: "
-        "add, sub, mul, div. "
-        "When a current number equals the target, "
-        "call stop."
+        "Solve the Toy24 task..."
     ),
     temperature=0.0,
 )
+
+runner = InProcessRunner()
 
 designer = LLMDesigner(
     client=designer_client,
@@ -76,8 +88,9 @@ tasks = [
 ]
 
 result = run_orchestrator(
-    base_env=env,
-    policy=policy,
+    env_spec=env_spec,
+    policy_spec=policy_spec,
+    runner=runner,
     designer=designer,
     budget=budget,
     tasks=tasks,

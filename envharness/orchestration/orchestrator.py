@@ -1,11 +1,9 @@
 from typing import Any
 from dataclasses import dataclass, field, replace
-from envharness.core.types import Observation, DesignProposal, ValidationBatch, DecideResult, BaselineSnapshot, Candidate, Trace, Decision, TraceKind
+from envharness.core.types import DesignProposal, ValidationBatch, DecideResult, BaselineSnapshot, Candidate, Trace, Decision, TraceKind
 from envharness.infra.utils import import_symbol
-from envharness.orchestration.runner import run_episode, run_episode_spec, EpisodeRunner
-from envharness.orchestration.builder import build_env_stack, build_episode_env
+from envharness.orchestration.runner import EpisodeRunner
 from envharness.core.actionable_env import ActionableEnv
-from envharness.agents.policy import Policy
 from envharness.agents.designer import Designer, DesignerContext
 from envharness.orchestration.budget import BudgetPolicy
 from envharness.orchestration.baseline import summarize_baseline
@@ -59,6 +57,12 @@ def _evaluate_candidate_k(
     max_steps: int = 10,
     **reset_kwargs,
 ) -> ValidationBatch:    
+    if k <= 0:
+        raise ValueError(
+            "validation_rollouts must be positive"
+        )
+
+    traces = []
     for rollout_idx in range(k):
         episode_env_spec = replace(env_spec, reset_args=tuple(reset_args), reset_kwargs=dict(reset_kwargs))
         episode_spec = EpisodeSpec(
@@ -75,6 +79,9 @@ def _evaluate_candidate_k(
         )
 
         trace = runner.run(episode_spec)
+        traces.append(trace)
+
+    return ValidationBatch(traces=traces)
 
 def run_orchestrator_task(
     env_spec: EnvSpec,
