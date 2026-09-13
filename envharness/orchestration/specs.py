@@ -23,7 +23,7 @@ class EpisodeSpec:
     policy: PolicySpec
     candidate: Candidate = field(default_factory=Candidate)
 
-    task_id = int | str | None = None
+    task_id: int | str | None = None
     attempt_idx: int | None = None
     rollout_idx: int | None = None
 
@@ -31,7 +31,7 @@ class EpisodeSpec:
 
     max_steps: int = 10
 
-def episode_sepc_to_dict(spec: EpisodeSpec):
+def episode_spec_to_dict(spec: EpisodeSpec):
     return {
         "env": {
             "import_path": spec.env.import_path,
@@ -72,7 +72,7 @@ def episode_spec_from_dict(data):
         env=EnvSpec(
             import_path=env["import_path"],
             init_kwargs=env["init_kwargs"],
-            reset_args=env["reset_args"],
+            reset_args=tuple(env["reset_args"]),
             reset_kwargs=env["reset_kwargs"],
         ),
         policy=PolicySpec(
@@ -95,6 +95,8 @@ def episode_spec_from_dict(data):
         task_id=data["task_id"],
         attempt_idx=data["attempt_idx"],
         rollout_idx=data["rollout_idx"],
-        trace_kind=data["trace_kind"],
+        trace_kind=TraceKind(
+            data["trace_kind"]
+        ),
         max_steps=data["max_steps"]
     )

@@ -4,7 +4,8 @@ from envharness.harness.setup import Setup
 from envharness.core.code_loader import load_rules_subclass
 from envharness.orchestration.specs import EnvSpec, EpisodeSpec, PolicySpec
 from envharness.infra.utils import import_symbol
-from envharness.agents.llm_policy import LLMClient, LLMPolicy
+from envharness.infra.llm import LLMClient
+from envharness.agents.llm_policy import LLMPolicy
 
 def build_env_stack(
     base: ActionableEnv,
@@ -43,7 +44,7 @@ def build_base_env(
 def build_episode_env(
     spec: EpisodeSpec
 ) -> ActionableEnv:
-    base = build_base_env(spec)
+    base = build_base_env(spec.env)
 
     return build_env_stack(
         base, spec.candidate
@@ -55,7 +56,7 @@ def build_policy(
 ) -> LLMPolicy:
 
     ClientCls = import_symbol(spec.client_factory)
-    client = ClientCls(**spec.client_factory)
+    client = ClientCls(**spec.client_kwargs)
 
     if not isinstance(
         client,
