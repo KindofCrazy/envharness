@@ -122,3 +122,7 @@ class BaselineSnapshot:
     avg_success_steps: float | None = None
     per_rollout: list[BaselineRolloutSummary] = field(default_factory=list)
 
+@dataclass
+class EnvResetResponse:
+    observation: Observation
+    info: dict[str: Any] = field(default_factory=dict)

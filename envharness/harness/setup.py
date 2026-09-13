@@ -1,5 +1,5 @@
 from envharness.core.envharness import EnvHarness
-from envharness.core.types import Action
+from envharness.core.types import Action, EnvResetResponse
 from envharness.core.registry import register_harness
 @register_harness("setup")
 class Setup(EnvHarness):
@@ -8,14 +8,18 @@ class Setup(EnvHarness):
         self.actions = actions
 
     def reset(self, *args, **kwargs):
-        super().reset(*args, **kwargs)
+        reset_response = self.inner.reset(*args, **kwargs)
         for action in self.actions:
-            res = super().step(action)
+            self.inner.step(action)
 
-            if res.terminated or res.truncated:
-                break
+        if self.actions:
+            self.inner.notify_replay_complete()
 
-        return self.observe()
+        return EnvResetResponse(
+            observation=self.inner.observe(),
+            info=dict(reset_response.info)
+        )
+
 
     def save_state(self) -> dict:
         return {

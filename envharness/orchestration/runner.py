@@ -15,7 +15,16 @@ def run_episode(
 ) -> Trace:
     policy.reset()
     try:
-        observation = initial_observation = env.reset(*reset_args, **reset_kwargs)
+        reset_response = env.reset(
+            *reset_args,
+            **reset_kwargs,
+        )
+
+        observation = (
+            reset_response.observation
+        )
+
+        initial_observation = observation    
     except Exception as exc:
         return Trace(
         initial_observation=Observation(

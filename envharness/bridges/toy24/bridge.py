@@ -1,5 +1,5 @@
 from envharness.core.actionable_env import ActionableEnv
-from envharness.core.types import Action, Observation, EnvResponse, EvaluationResult
+from envharness.core.types import Action, Observation, EnvResponse, EvaluationResult, EnvResetResponse
 from envharness.bridges.toy24.game import Toy24State
 from envharness.bridges.toy24.tools import Combine, Reset, Stop
 from envharness.core.registry import register_env
@@ -19,7 +19,10 @@ class Toy24Env(ActionableEnv):
             current_numbers=[float(n) for n in numbers]
         )
 
-        return self.observe()
+        return EnvResetResponse(
+            observation=self.observe(),
+            info={},
+        )
 
     def step(self, action: Action):
         self.state.step_count += 1
@@ -134,3 +137,7 @@ class Toy24Env(ActionableEnv):
             "A successful combine removes both selected numbers "
             "and appends the result, so indices change after each combine."
         )
+
+
+    def reset_after_load(self):
+        return False

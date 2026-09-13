@@ -1,14 +1,14 @@
 from typing import Any
 from abc import ABC, abstractmethod
 
-from envharness.core.types import Action, Observation, EnvResponse, EvaluationResult
+from envharness.core.types import Action, Observation, EnvResponse, EvaluationResult, EnvResetResponse
 
 class ActionableEnv(ABC):
 
     tool_registry = []
 
     @abstractmethod
-    def reset(self, *args, **kwargs) -> Observation:
+    def reset(self, *args, **kwargs) -> EnvResetResponse:
         ...
 
     @abstractmethod
@@ -49,3 +49,15 @@ class ActionableEnv(ABC):
     @classmethod
     def env_state_schema(cls) -> str:
         return "(no env_state schema declared)"
+
+    def close(self) -> None:
+        return None
+
+    def notify_replay_complete(self,) -> None:
+        return None
+
+    def default_reset_args(self) -> tuple[tuple, dict]:
+        return (), {}
+
+    def reset_after_load(self,) -> bool:
+        return True

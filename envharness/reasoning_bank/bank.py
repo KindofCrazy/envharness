@@ -78,18 +78,3 @@ class Bank:
 
         scored.sort(key=lambda pair: pair[0], reverse=True)
         return [item for _, item in scored[:k]]
-
-
-def make_retriever(
-    bank: Bank,
-    embedder: Embedder,
-    *,
-    k: int = 3,
-    cosine_threshold: float = 0.0,
-) -> MemoryRetriever:
-    return MemoryRetriever(
-        bank,
-        embedder,
-        k=k,
-        cosine_threshold=cosine_threshold,
-    )

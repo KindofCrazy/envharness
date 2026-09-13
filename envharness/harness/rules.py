@@ -1,5 +1,5 @@
 from envharness.core.envharness import EnvHarness
-from envharness.core.types import Action, Blocked, Observation, EnvResponse
+from envharness.core.types import Action, Blocked, Observation, EnvResponse, EnvResetResponse
 from envharness.core.registry import register_harness
 
 @register_harness("rules")
@@ -51,10 +51,22 @@ class Rules(EnvHarness):
         return self.filter_observation(observation, env_state)
 
     def reset(self, *args, **kwargs) -> Observation:
-        observation = self.inner.reset(*args, **kwargs)
-        env_state = self.inner.get_env_state()
-        return self.filter_observation(observation, env_state)
+        reset_response = self.inner.reset(
+            *args,
+            **kwargs,
+        )
 
+        env_state = self.inner.get_env_state()
+
+        observation = self.filter_observation(
+            self.inner.observe(),
+            env_state,
+        )
+
+        return EnvResetResponse(
+            observation=observation,
+            info=dict(reset_response.info),
+        )
     def save_state(self) -> dict:
         return {"rules_code": self.rules_code}
 

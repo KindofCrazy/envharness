@@ -33,3 +33,15 @@ class EnvHarness(ActionableEnv):
     @classmethod
     def harness_type(cls) -> str:
         raise NotImplementedError(f"{cls.__name__} has no harness_type")
+
+    def notify_replay_complete(self):
+        return self.inner.notify_replay_complete()
+
+    def default_reset_args(self):
+        return self.inner.default_reset_args()
+
+    def reset_after_load(self):
+        return self.inner.reset_after_load()
+
+    def close(self):
+        return self.inner.close()
