@@ -50,7 +50,7 @@ class Rules(EnvHarness):
         env_state = self.inner.get_env_state()
         return self.filter_observation(observation, env_state)
 
-    def reset(self, *args, **kwargs) -> Observation:
+    def reset(self, *args, **kwargs) -> EnvResetResponse:
         reset_response = self.inner.reset(
             *args,
             **kwargs,
