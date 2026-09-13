@@ -94,7 +94,21 @@ class ShellToyEnv(ActionableEnv):
                     "error": "unknown_action"
                 },
             )
+        
+        
         text = action.kwargs.get("text")
+        if not isinstance(text, str):
+            return EnvResponse(
+                observation=self.observe(),
+                reward=0.0,
+                terminated=False,
+                truncated=False,
+                info={
+                    "error": "bad_args"
+                },
+            )
+
+        
         result = self._request({
             "op": "command",
             "text": text,

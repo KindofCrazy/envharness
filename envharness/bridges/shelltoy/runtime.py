@@ -25,19 +25,17 @@ def main():
         op = request["op"]
 
         if op == "reset":
-            if op == "reset":
-                value = request["value"]
-                target = request["target"]
+            value = request["value"]
+            target = request["target"]
 
-                stopped = False
-                success = False
-                step_count = 0
+            stopped = False
+            success = False
+            step_count = 0
 
-                last_message = (
-                    f"runtime reset; value={value}"
-                )
-
-                send(snapshot())
+            last_message = (
+                f"runtime reset; value={value}"
+            )
+            send(snapshot())
         elif op == "command":
             text = request["text"].strip()
             step_count += 1
@@ -50,19 +48,29 @@ def main():
                 )
 
             elif len(parts) == 2 and parts[0] == "add":
-                n = int(parts[1])
-                value += n
-                last_message = (
-                    f"added {n}; value={value}"
-                )
-
+                try:
+                    n = int(parts[1])
+                except ValueError:
+                    last_message = (
+                        f"invalid add command: {text}"
+                    )
+                else:
+                    value += n
+                    last_message = (
+                        f"added {n}; value={value}"
+                    )
             elif len(parts) == 2 and parts[0] == "mul":
-                n = int(parts[1])
-                value *= n
-                last_message = (
-                    f"multiplied by {n}; value={value}"
+                try:
+                    n = int(parts[1])
+                except ValueError:
+                    last_message = (
+                    f"invalid mul command: {text}"
                 )
-
+                else:
+                    value *= n
+                    last_message = (
+                        f"mul {n}; value={value}"
+                    )
             elif text == "stop":
                 stopped = True
                 success = (
