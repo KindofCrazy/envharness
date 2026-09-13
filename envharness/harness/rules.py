@@ -24,8 +24,24 @@ class Rules(EnvHarness):
         filtered = self.filter_action(action, pre_state)
 
         if isinstance(filtered, Blocked):
-            observation = self.inner.observe()
-            observation = self.filter_observation(observation, pre_state)
+            fresh = self.inner.observe()
+
+            fresh = self.filter_observation(
+                fresh,
+                pre_state,
+            )
+
+            observation = Observation(
+                text=(
+                    f"[blocked] {filtered.reason}\n\n"
+                    f"{fresh.text}"
+                ),
+                data={
+                    **fresh.data,
+                    "blocked": True,
+                    "blocked_reason": filtered.reason,
+                },
+            )
 
             return EnvResponse(
                 observation=observation,
@@ -33,10 +49,9 @@ class Rules(EnvHarness):
                 terminated=False,
                 truncated=False,
                 info={
-                    "reason": filtered.reason
-                }
-            )
-        
+                    "blocked_reason": filtered.reason,
+                },
+            )        
         response = self.inner.step(filtered)
         post_state = self.inner.get_env_state()
 
