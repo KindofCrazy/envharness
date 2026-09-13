@@ -13,7 +13,7 @@ class ShellToyState:
     target: int = 24
     stopped: bool = False
     success: bool = False
-    step_count: int = 10
+    step_count: int = 0
     last_message: str = ""
 
 
@@ -45,6 +45,7 @@ class ShellToyEnv(ActionableEnv):
 
         line = json.dumps(payload)
         self._proc.stdin.write(line + "\n")
+        self._proc.stdin.flush()
 
         response_line = self._proc.stdout.readline()
         if not response_line:
@@ -83,11 +84,16 @@ class ShellToyEnv(ActionableEnv):
 
 
     def step(self, action: Action) -> EnvResponse:
-        self.state.step_count += 1
-
         if action.name != "do":
-            raise ValueError("action.name should only be 'do'")
-
+            return EnvResponse(
+                observation=self.observe(),
+                reward=0.0,
+                terminated=False,
+                truncated=False,
+                info={
+                    "error": "unknown_action"
+                },
+            )
         text = action.kwargs.get("text")
         result = self._request({
             "op": "command",
@@ -95,6 +101,18 @@ class ShellToyEnv(ActionableEnv):
         })
 
         self._update_state(result)
+
+        return EnvResponse(
+            observation=self.observe(),
+            reward= 1.0 if self.state.stopped and self.state.success else 0.0,
+            terminated=self.state.stopped,
+            truncated=False,
+            info={
+                "message": (
+                    self.state.last_message
+                )
+            }
+        )
 
     def observe(self) -> Observation:
         return Observation(
@@ -181,5 +199,3 @@ class ShellToyEnv(ActionableEnv):
 
     def reset_after_load(self):
         return True
-
-    
