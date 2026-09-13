@@ -59,7 +59,7 @@ def episode_spec_to_dict(spec: EpisodeSpec):
         "task_id": spec.task_id,
         "attempt_idx": spec.attempt_idx,
         "rollout_idx": spec.rollout_idx,
-        "trace_kind": spec.trace_kind,
+        "trace_kind": spec.trace_kind.value,
         "max_steps": spec.max_steps
         }
 
