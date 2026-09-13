@@ -4,14 +4,25 @@ from envharness.core.types import Trace, Candidate, Diagnosis, DesignProposal, V
 
 @dataclass
 class DesignerContext:
-    history_traces: list[Trace] = field(default_factory=list)
-    tool_schemas: list[dict] = field(default_factory=list)
+    history_traces: list[Trace] = field(
+        default_factory=list
+    )
+
+    baseline_traces: list[Trace] = field(
+        default_factory=list
+    )
+
+    tool_schemas: list[dict] = field(
+        default_factory=list
+    )
+
     env_state_schema: str = ""
 
     task_id: int | str = 0
     task_description: str = ""
+
     baseline: BaselineSnapshot | None = None
-    objective_signal: ObjectiveSignal| None = None
+    objective_signal: ObjectiveSignal | None = None
 
 
 class Designer(ABC):

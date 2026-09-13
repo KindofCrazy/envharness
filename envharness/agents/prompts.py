@@ -186,6 +186,23 @@ avg_success_steps: {ctx.baseline.avg_success_steps}
 """
     )
 
+    if ctx.baseline_traces:
+        baseline_trace_text = "\n\n".join(
+            render_trace(trace)
+            for trace in ctx.baseline_traces
+        )
+
+        parts.append(
+            "BASELINE TRAJECTORIES\n"
+            + baseline_trace_text
+        )
+    else:
+        parts.append(
+            "BASELINE TRAJECTORIES\n"
+            "(none)"
+        )
+
+
     if ctx.objective_signal is not None:
         parts.append(
             f"""OBJECTIVE

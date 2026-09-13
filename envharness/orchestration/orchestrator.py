@@ -131,6 +131,7 @@ def run_orchestrator_task(
         raise TypeError("EnvCls should be ActionableEnv")
     ctx = DesignerContext(
         history_traces=history,
+        baseline_traces=baseline_batch.traces,
         tool_schemas=EnvCls.tool_schemas(),
         env_state_schema=EnvCls.env_state_schema(),
         task_id=task_id,
