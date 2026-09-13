@@ -1,3 +1,9 @@
+import json
+import subprocess
+import sys
+import tempfile
+
+from pathlib import Path
 from abc import ABC, abstractmethod
 from envharness.core.actionable_env import ActionableEnv
 from envharness.agents.policy import Policy
@@ -5,6 +11,8 @@ from envharness.core.types import Step, Trace, TraceKind, Observation
 from envharness.orchestration.specs import EpisodeSpec
 from envharness.orchestration.builder import build_episode_env, build_policy
 from envharness.infra.utils import import_symbol
+from envharness.orchestration.specs import episode_spec_to_dict
+from envharness.orchestration.storage import trace_from_dict
 
 def run_episode(
     env: ActionableEnv,
@@ -159,4 +167,73 @@ class InProcessRunner(EpisodeRunner):
     def run(self, spec: EpisodeSpec) -> Trace:
         return run_episode_spec(spec)
 
-    
+
+def make_failure_trace(spec: EpisodeSpec, error: str) -> Trace:
+    return Trace(
+        initial_observation=Observation(
+            text="episode failed"
+        ),
+        kind=spec.trace_kind,
+        task_id=spec.task_id,
+        attempt_idx=spec.attempt_idx,
+        rollout_idx=spec.rollout_idx,
+        error=error
+    )
+
+class SubprocessRunner(EpisodeRunner):
+
+    def __init__(self, timeout_seconds: float = 120.0):
+        self.timeout_seconds = timeout_seconds
+
+    def run(self, spec: EpisodeSpec):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_dir = Path(tmp)
+
+            input_path = tmp_dir / "input.json"
+            output_path = tmp_dir / "output.json"
+
+            input_path.write_text(
+                json.dumps(episode_spec_to_dict(spec)), encoding="utf-8"
+            )
+
+            command = [
+                sys.executable,
+                "-m",
+                "envharness.orchestration.worker",
+                str(input_path),
+                str(output_path),
+            ]
+
+            try:
+                result = subprocess.run(
+                    command,
+                    capture_output=True,
+                    text=True,
+                    timeout=self.timeout_seconds
+                )
+
+            except subprocess.TimeoutExpired:
+                return make_failure_trace(spec, "episode subprocess timed out")
+
+            if output_path.exists():
+                try:
+                    data = json.loads(output_path.read_text(encoding="utf-8"))
+                    return trace_from_dict(data)
+
+                except Exception as exc:
+                    return make_failure_trace(spec, f"invalid subprocess\n output: {exc}")
+                
+            if result.returncode != 0:
+                return make_failure_trace(
+                    spec,
+                    (
+                        "episode subprocess "
+                        "failed: "
+                        f"{result.stderr[-2000:]}"
+                    ),
+                )
+
+            return make_failure_trace(
+                spec,
+                "episode subprocess produced no output",
+            )
