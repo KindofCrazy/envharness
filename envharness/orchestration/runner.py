@@ -10,6 +10,7 @@ from envharness.agents.policy import Policy
 from envharness.core.types import Step, Trace, TraceKind, Observation
 from envharness.orchestration.specs import EpisodeSpec
 from envharness.orchestration.builder import build_episode_env, build_policy
+from envharness.infra.utils import import_symbol
 from envharness.orchestration.specs import episode_spec_to_dict
 from envharness.orchestration.storage import trace_from_dict
 
@@ -142,9 +143,12 @@ def run_episode_spec(spec: EpisodeSpec) -> Trace:
             )
 
         try:
+            EnvCls = import_symbol(
+                spec.env.import_path
+            )
             policy = build_policy(
                 spec.policy,
-                type(env).tool_schemas(),
+                EnvCls.tool_schemas(),
             )
         except Exception as exc:
             return Trace(
