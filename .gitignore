@@ -1,4 +1,12 @@
+# Local secrets
 examples/api_key.txt
+.env
+.env.*
+*.pem
+*.key
+
+# Local run outputs
+runs/
 
 # Byte-compiled / cache
 __pycache__/
