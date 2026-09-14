@@ -1,4 +1,6 @@
+import os
 from pathlib import Path
+
 from envharness.infra.llm import OpenAICompatibleClient
 from envharness.agents.llm_designer import LLMDesigner
 from envharness.orchestration.budget import FixedBudget
@@ -14,24 +16,13 @@ store = TraceStore(
     Path("runs/toy24/traces.jsonl")
 )
 
-api_key_path = Path(__file__).parent / "api_key.txt"
-api_key = api_key_path.read_text(
-    encoding="utf-8"
-).strip()
-
-
-policy_client = OpenAICompatibleClient(
-    model_id="deepseek-v4-flash",
-    base_url="https://api.deepseek.com",
-    api_key=api_key,
-    thinking=False
-)
+api_key = os.environ["DEEPSEEK_API_KEY"]
 
 designer_client = OpenAICompatibleClient(
     model_id="deepseek-v4-flash",
     base_url="https://api.deepseek.com",
     api_key=api_key,
-    thinking=False
+    thinking=False,
 )
 
 env_spec = EnvSpec(
@@ -94,7 +85,7 @@ result = run_orchestrator(
     tasks=tasks,
     validation_rollouts=2,
     max_steps=8,
-    trace_store=store
+    trace_store=store,
 )
 
 task_result = result.task_results[0]
